@@ -1,0 +1,71 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.class
+*.so
+
+# Environments & Packaging
+env/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# IDE & OS Metadata
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.log
+
+# Personal User Data, Notes, PDFs, and Study Plans
+uploads/*
+!uploads/.gitkeep
+
+data/storage/*.json
+!data/storage/.gitkeep
+
+data/curriculum/*.json
+!data/curriculum/.gitkeep
+
+data/document_cache/*
+!data/document_cache/.gitkeep
+
+data/chroma_db/
+data/*.db
+data/*.sqlite3
+
+vectordb/*
+!vectordb/.gitkeep
+
+# Cryptography, VAPID Keys & Local SSL Certificates
+*.pem
+*.key
+*.cert
+vapid_config.json
+vapid_private.pem
+ssl_cert.pem
+ssl_key.pem
+
+# Intermediate Android Build Artifacts & Compiled Bytecode
+*.idsig
+*.apk.idsig
+android_builder/**/bin/
+android_builder/**/classes/
+android_builder/**/gen/
+android_builder/**/build/
+
+# Research Papers, Academic Drafts & Conference Submissions
+*paper*
+*Paper*
+*conference*
+*Conference*
+docs/*Paper*
+docs/*paper*
+*.docx
+
