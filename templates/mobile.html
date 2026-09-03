@@ -1,0 +1,2728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8"/>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+ <meta name="mobile-web-app-capable" content="yes"/>
+ <meta name="apple-mobile-web-app-capable" content="yes"/>
+ <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+ <meta name="apple-mobile-web-app-title" content="StudyEdge"/>
+ <link rel="apple-touch-icon" href="/static/icon-192.png"/>
+ <link rel="apple-touch-icon" sizes="512x512" href="/static/icon-512.png"/>
+ <meta name="theme-color" content="#4361ee"/>
+ <title>StudyEdge Mobile — Alerts & Focus</title>
+ 
+ <link rel="manifest" href="/static/manifest.json"/>
+ <link rel="stylesheet" href="/static/fonts.css"/>
+ <link rel="stylesheet" href="/static/bootstrap-icons.css"/>
+ 
+ <style>
+ :root {
+ --primary: #4361ee;
+ --primary-dk: #3f37c9;
+ --primary-dark: #3f37c9;
+ --primary-light: #eef2ff;
+ --accent: #4895ef;
+ --success: #23b26d;
+ --warning: #f8961e;
+ --danger: #e63980;
+ --bg: #f3f5ff;
+ --bg2: #eaedfc;
+ --card-bg: #ffffff;
+ --surface: #ffffff;
+ --text: #1e2140;
+ --text-muted: #7b82b0;
+ --border: #e4e8ff;
+ --grad: linear-gradient(135deg, #4361ee, #3f37c9);
+ --shadow-sm: 0 2px 10px rgba(67, 97, 238, 0.08);
+ --shadow-md: 0 6px 24px rgba(67, 97, 238, 0.12);
+ }
+
+ * {
+ box-sizing: border-box;
+ margin: 0;
+ padding: 0;
+ -webkit-tap-highlight-color: transparent;
+ user-select: none;
+ }
+
+ body {
+ font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+ background: var(--bg);
+ color: var(--text);
+ min-height: 100vh;
+ display: flex;
+ flex-direction: column;
+ overflow-x: hidden;
+ padding-bottom: 80px;
+ }
+
+ /* ── Header (Matches Web App Top Nav Gradient) ── */
+ .mobile-header {
+ background: var(--grad);
+ color: #ffffff;
+ padding: 12px 18px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+ box-shadow: 0 3px 18px rgba(63, 55, 201, 0.25);
+ position: sticky;
+ top: 0;
+ z-index: 100;
+ }
+
+ .brand-wrap {
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ }
+
+ .brand-icon {
+ width: 34px;
+ height: 34px;
+ border-radius: 9px;
+ background: rgba(255, 255, 255, 0.18);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ color: white;
+ font-size: 1.15rem;
+ }
+
+ .brand-name {
+ font-weight: 800;
+ font-size: 1.05rem;
+ letter-spacing: 0.2px;
+ color: #ffffff;
+ }
+
+ .brand-badge {
+ font-size: 0.65rem;
+ background: rgba(255, 255, 255, 0.25);
+ color: #ffffff;
+ padding: 2px 6px;
+ border-radius: 4px;
+ font-weight: 700;
+ margin-left: 4px;
+ letter-spacing: 0.5px;
+ }
+
+ .header-actions {
+ display: flex;
+ align-items: center;
+ gap: 8px;
+ }
+
+ .streak-pill {
+ background: rgba(255, 255, 255, 0.18);
+ border: 1px solid rgba(255, 255, 255, 0.25);
+ color: #ffffff;
+ font-weight: 700;
+ font-size: 0.78rem;
+ padding: 4px 9px;
+ border-radius: 20px;
+ display: flex;
+ align-items: center;
+ gap: 4px;
+ }
+
+ .icon-btn {
+ background: rgba(255, 255, 255, 0.16);
+ border: 1px solid rgba(255, 255, 255, 0.25);
+ color: #ffffff;
+ width: 34px;
+ height: 34px;
+ border-radius: 50%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ cursor: pointer;
+ font-size: 0.95rem;
+ transition: background 0.15s ease;
+ }
+
+ .icon-btn:hover {
+ background: rgba(255, 255, 255, 0.28);
+ }
+
+ /* ── PWA Install Banner ── */
+ .install-banner {
+ background: #ffffff;
+ border-bottom: 1px solid var(--border);
+ padding: 10px 16px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ gap: 12px;
+ box-shadow: var(--shadow-sm);
+ animation: fadeIn 0.3s ease;
+ }
+
+ .install-text {
+ font-size: 0.76rem;
+ color: var(--text);
+ line-height: 1.3;
+ }
+
+ .install-btn {
+ background: var(--grad);
+ color: white;
+ border: none;
+ padding: 6px 14px;
+ border-radius: 8px;
+ font-weight: 700;
+ font-size: 0.76rem;
+ white-space: nowrap;
+ cursor: pointer;
+ box-shadow: 0 2px 8px rgba(67, 97, 238, 0.25);
+ transition: all 0.15s ease;
+ }
+
+ .install-btn:hover {
+ transform: translateY(-1px);
+ }
+
+ /* ── Main Tab Views ── */
+ .tab-view {
+ display: none;
+ padding: 16px;
+ flex: 1;
+ animation: fadeIn 0.2s ease;
+ }
+
+ .tab-view.active {
+ display: flex;
+ flex-direction: column;
+ }
+
+ @keyframes fadeIn {
+ from { opacity: 0; transform: translateY(6px); }
+ to { opacity: 1; transform: translateY(0); }
+ }
+
+ /* ── Focus / Timer View ── */
+ .focus-card {
+ background: var(--card-bg);
+ border: 1px solid var(--border);
+ border-radius: 20px;
+ padding: 24px 18px;
+ text-align: center;
+ box-shadow: var(--shadow-md);
+ position: relative;
+ margin-bottom: 16px;
+ }
+
+ .focus-topic-badge {
+ display: inline-flex;
+ align-items: center;
+ gap: 6px;
+ background: var(--primary-light);
+ border: 1px solid #c7d2fe;
+ padding: 5px 14px;
+ border-radius: 20px;
+ font-size: 0.82rem;
+ font-weight: 700;
+ color: var(--primary);
+ max-width: 90%;
+ overflow: hidden;
+ text-overflow: ellipsis;
+ white-space: nowrap;
+ margin-bottom: 18px;
+ }
+
+ .timer-ring-container {
+ position: relative;
+ width: 220px;
+ height: 220px;
+ margin: 0 auto 20px;
+ }
+
+ .timer-svg {
+ transform: rotate(-90deg);
+ width: 100%;
+ height: 100%;
+ }
+
+ .timer-circle-bg {
+ fill: none;
+ stroke: var(--border);
+ stroke-width: 10;
+ }
+
+ .timer-circle-progress {
+ fill: none;
+ stroke: var(--primary);
+ stroke-width: 10;
+ stroke-linecap: round;
+ stroke-dasharray: 628;
+ stroke-dashoffset: 0;
+ transition: stroke-dashoffset 0.8s ease, stroke 0.3s ease;
+ }
+
+ .timer-center {
+ position: absolute;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ }
+
+ .timer-digits {
+ font-size: 3.2rem;
+ font-weight: 800;
+ letter-spacing: -1.5px;
+ font-variant-numeric: tabular-nums;
+ color: var(--text);
+ }
+
+ .timer-phase {
+ font-size: 0.75rem;
+ font-weight: 700;
+ text-transform: uppercase;
+ letter-spacing: 1.5px;
+ color: var(--text-muted);
+ margin-top: 4px;
+ }
+
+ .round-dots-row {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 8px;
+ margin-bottom: 22px;
+ }
+
+ .round-dot {
+ width: 10px;
+ height: 10px;
+ border-radius: 50%;
+ background: var(--border);
+ transition: all 0.3s ease;
+ }
+
+ .round-dot.active {
+ background: var(--primary);
+ box-shadow: 0 0 10px rgba(67, 97, 238, 0.4);
+ transform: scale(1.2);
+ }
+
+ .timer-controls {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 12px;
+ }
+
+ .btn-timer-main {
+ background: var(--grad);
+ color: white;
+ border: none;
+ padding: 14px 28px;
+ border-radius: 14px;
+ font-weight: 700;
+ font-size: 1.05rem;
+ display: flex;
+ align-items: center;
+ gap: 8px;
+ cursor: pointer;
+ box-shadow: 0 4px 16px rgba(67, 97, 238, 0.35);
+ flex: 1;
+ justify-content: center;
+ transition: all 0.15s ease;
+ }
+
+ .btn-timer-main:hover {
+ transform: translateY(-1px);
+ box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+ }
+
+ .btn-timer-sec {
+ background: #ffffff;
+ border: 1px solid var(--border);
+ color: var(--text);
+ width: 50px;
+ height: 50px;
+ border-radius: 14px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ cursor: pointer;
+ font-size: 1.1rem;
+ box-shadow: var(--shadow-sm);
+ transition: all 0.15s ease;
+ }
+
+ .btn-timer-sec:hover {
+ background: var(--primary-light);
+ border-color: #c7d2fe;
+ color: var(--primary);
+ }
+
+ .mobile-pause-preset {
+ width: 100%;
+ background: #ffffff;
+ border: 1.5px solid var(--border);
+ border-radius: 12px;
+ padding: 12px 14px;
+ display: flex;
+ flex-direction: column;
+ align-items: flex-start;
+ justify-content: center;
+ gap: 3px;
+ cursor: pointer;
+ box-shadow: var(--shadow-sm);
+ transition: all 0.15s ease;
+ text-align: left;
+ box-sizing: border-box;
+ }
+ .mobile-pause-preset:hover, .mobile-pause-preset:active {
+ background: #f0f4ff;
+ border-color: var(--primary);
+ transform: translateY(-1px);
+ }
+ .mobile-pause-preset-title {
+ font-weight: 800;
+ font-size: 0.84rem;
+ color: var(--text);
+ display: flex;
+ align-items: center;
+ gap: 6px;
+ }
+ .mobile-pause-preset-sub {
+ font-size: 0.68rem;
+ color: var(--text-muted);
+ margin-left: 20px;
+ }
+
+ /* ── Section Blocks ── */
+ .section-title {
+ font-size: 0.88rem;
+ font-weight: 700;
+ color: var(--text-muted);
+ text-transform: uppercase;
+ letter-spacing: 0.5px;
+ margin-bottom: 12px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ }
+
+ .plan-card {
+ background: var(--card-bg);
+ border: 1px solid var(--border);
+ border-radius: 14px;
+ padding: 14px 16px;
+ margin-bottom: 10px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ gap: 12px;
+ box-shadow: var(--shadow-sm);
+ }
+
+ .plan-card.active-now {
+ border-left: 4px solid var(--warning);
+ background: #fffdf5;
+ }
+
+ .plan-card.done {
+ border-left: 4px solid var(--success);
+ opacity: 0.75;
+ }
+
+ .plan-info-title {
+ font-weight: 700;
+ font-size: 0.9rem;
+ color: var(--text);
+ margin-bottom: 3px;
+ }
+
+ .plan-info-sub {
+ font-size: 0.75rem;
+ color: var(--text-muted);
+ display: flex;
+ align-items: center;
+ gap: 8px;
+ }
+
+ .plan-btn-start {
+ background: var(--success);
+ color: white;
+ border: none;
+ padding: 8px 14px;
+ border-radius: 8px;
+ font-weight: 700;
+ font-size: 0.78rem;
+ cursor: pointer;
+ white-space: nowrap;
+ }
+
+ /* ── Quick Reminder Form ── */
+ .quick-remind-grid {
+ display: grid;
+ grid-template-columns: repeat(2, 1fr);
+ gap: 10px;
+ margin-bottom: 16px;
+ }
+
+ .quick-chip {
+ background: var(--card-bg);
+ border: 1px solid var(--border);
+ border-radius: 12px;
+ padding: 14px;
+ text-align: center;
+ cursor: pointer;
+ box-shadow: var(--shadow-sm);
+ transition: all 0.15s ease;
+ }
+
+ .quick-chip:active, .quick-chip:hover {
+ transform: translateY(-2px);
+ border-color: var(--primary);
+ background: var(--primary-light);
+ }
+
+ .quick-chip-time {
+ font-size: 0.95rem;
+ font-weight: 800;
+ color: var(--primary);
+ }
+
+ .quick-chip-label {
+ font-size: 0.72rem;
+ color: var(--text-muted);
+ margin-top: 3px;
+ }
+
+ /* ── Settings Card ── */
+ .setting-item {
+ background: var(--card-bg);
+ border: 1px solid var(--border);
+ border-radius: 12px;
+ padding: 14px 16px;
+ margin-bottom: 10px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ gap: 12px;
+ box-shadow: var(--shadow-sm);
+ }
+
+ .setting-label {
+ font-weight: 700;
+ font-size: 0.88rem;
+ color: var(--text);
+ }
+
+ .setting-desc {
+ font-size: 0.74rem;
+ color: var(--text-muted);
+ margin-top: 2px;
+ }
+
+ /* ── Bottom Nav ── */
+ .mobile-bottom-nav {
+ position: fixed;
+ bottom: 0;
+ left: 0;
+ right: 0;
+ height: 64px;
+ background: rgba(255, 255, 255, 0.96);
+ backdrop-filter: blur(16px);
+ border-top: 1px solid var(--border);
+ box-shadow: 0 -4px 20px rgba(67, 97, 238, 0.08);
+ display: flex;
+ align-items: center;
+ justify-content: space-around;
+ z-index: 1000;
+ }
+
+ .nav-tab {
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ gap: 3px;
+ color: var(--text-muted);
+ cursor: pointer;
+ flex: 1;
+ height: 100%;
+ font-size: 0.72rem;
+ font-weight: 600;
+ transition: color 0.15s ease;
+ }
+
+ .nav-tab i {
+ font-size: 1.25rem;
+ }
+
+ .nav-tab.active {
+ color: var(--primary);
+ }
+
+ .toast-msg {
+ position: fixed;
+ top: 60px;
+ left: 50%;
+ transform: translateX(-50%) translateY(-20px);
+ background: #1e2140;
+ color: #ffffff;
+ border: 1px solid #334155;
+ border-radius: 10px;
+ padding: 10px 16px;
+ font-size: 0.8rem;
+ font-weight: 600;
+ box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+ z-index: 9999;
+ opacity: 0;
+ transition: all 0.3s ease;
+ pointer-events: none;
+ }
+
+ .toast-msg.show {
+ opacity: 1;
+ transform: translateX(-50%) translateY(0);
+ }
+
+ /* ── Mobile Interactive Studio Styles ── */
+ .milestones-card {
+ background: var(--card-bg);
+ border: 1px solid var(--border);
+ border-radius: 14px;
+ padding: 14px;
+ margin-top: 12px;
+ box-shadow: var(--shadow-sm);
+ }
+ .milestones-header {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ font-size: 0.76rem;
+ font-weight: 800;
+ color: var(--primary);
+ text-transform: uppercase;
+ letter-spacing: 0.4px;
+ margin-bottom: 10px;
+ }
+ .milestone-item {
+ display: flex;
+ align-items: flex-start;
+ gap: 8px;
+ padding: 9px 12px;
+ border-radius: 9px;
+ background: #f8fafc;
+ border: 1px solid var(--border);
+ margin-bottom: 6px;
+ font-size: 0.8rem;
+ cursor: pointer;
+ transition: all 0.15s ease;
+ }
+ .milestone-item.done {
+ background: rgba(35, 178, 109, 0.1);
+ border-color: rgba(35, 178, 109, 0.3);
+ }
+ .milestone-item.done .milestone-title {
+ text-decoration: line-through;
+ color: #15803d;
+ }
+ .milestone-cb {
+ margin-top: 2px;
+ accent-color: var(--success);
+ }
+ .milestone-content {
+ flex: 1;
+ }
+ .milestone-title {
+ font-weight: 700;
+ color: var(--text);
+ font-size: 0.8rem;
+ }
+ .milestone-goal {
+ font-size: 0.72rem;
+ color: var(--text-muted);
+ margin-top: 2px;
+ line-height: 1.3;
+ }
+ .btn-challenge-trigger {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 6px;
+ width: 100%;
+ padding: 12px;
+ background: linear-gradient(135deg, #f8961e, #d97706);
+ color: white;
+ border: none;
+ border-radius: 12px;
+ font-weight: 800;
+ font-size: 0.86rem;
+ cursor: pointer;
+ box-shadow: 0 4px 14px rgba(248, 150, 30, 0.3);
+ margin-top: 10px;
+ transition: all 0.15s ease;
+ }
+ .btn-challenge-trigger:hover {
+ transform: translateY(-1px);
+ }
+ .mobile-modal-overlay {
+ position: fixed;
+ top: 0;
+ left: 0;
+ right: 0;
+ bottom: 0;
+ background: rgba(30, 33, 64, 0.5);
+ backdrop-filter: blur(6px);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ padding: 16px;
+ z-index: 10000;
+ }
+ .mobile-modal-box {
+ background: #ffffff;
+ border: 1px solid var(--border);
+ border-radius: 18px;
+ padding: 22px;
+ width: 100%;
+ max-width: 400px;
+ box-shadow: 0 20px 40px rgba(67, 97, 238, 0.18);
+ color: var(--text);
+ }
+ .custom-time-input {
+ background: #ffffff;
+ border: 1px solid var(--border);
+ border-radius: 9px;
+ color: var(--text);
+ outline: none;
+ font-family: inherit;
+ }
+ .custom-time-input:focus {
+ border-color: var(--primary);
+ box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+ }
+ </style>
+</head>
+<body>
+
+ <!-- Header -->
+ <header class="mobile-header">
+ <div class="brand-wrap">
+ <div class="brand-icon">
+ <i class="bi bi-shield-check"></i>
+ </div>
+ <div>
+ <div class="brand-name">StudyEdge <span class="brand-badge">MOBILE</span></div>
+ </div>
+ </div>
+ <div class="header-actions">
+ <div class="streak-pill">
+ <i class="bi bi-fire"></i> <span id="streakCount">0</span>
+ </div>
+ <button class="icon-btn" onclick="toggleFullscreenApp()" title="Fullscreen App Mode" id="fullscreenBtn">
+ <i class="bi bi-arrows-fullscreen"></i>
+ </button>
+ <button class="icon-btn" id="mobileReminderToggleBtn" onclick="openMobilePauseModal()" title="Pause Reminders (Do Not Disturb)" style="position:relative">
+ <i class="bi bi-bell-fill" id="mobileReminderHeaderIcon" style="color:#10b981"></i>
+ <span id="mobileReminderDndDot" style="display:none;position:absolute;top:3px;right:3px;width:7px;height:7px;border-radius:50%;background:#ef4444"></span>
+ </button>
+ <button class="icon-btn" onclick="switchTab('settings')" title="Alert Settings">
+ <i class="bi bi-sliders" id="headerSettingsIcon"></i>
+ </button>
+ </div>
+ </header>
+
+ <!-- PWA Install Banner -->
+ <div class="install-banner" id="pwaInstallBanner" style="display:none">
+ <div class="install-text">
+ <strong>Install Mobile App</strong><br>
+ Add to Home Screen for background alarms &amp; lock-screen alerts.
+ </div>
+ <button class="install-btn" onclick="triggerPWAInstall()">
+ <i class="bi bi-download"></i> Install
+ </button>
+ </div>
+
+ <!-- TAB 1: Focus & Pomodoro -->
+ <main class="tab-view active" id="tab-focus">
+ <div class="focus-card">
+ <div class="focus-topic-badge" id="focusTopicBadge">
+ <i class="bi bi-journal-text"></i> <span id="activeTopicText">General Focus</span>
+ </div>
+
+ <!-- Mobile Reminders Paused Banner -->
+ <div class="mobile-dnd-banner" id="mobileDndBanner" style="display:none;margin:8px auto 0;padding:5px 12px;background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.35);border-radius:20px;font-size:0.75rem;color:#fca5a5;font-weight:700;cursor:pointer;align-items:center;gap:6px" onclick="openMobilePauseModal()">
+ <i class="bi bi-bell-slash-fill"></i> <span id="mobileDndBannerText">Reminders Paused (Busy Mode)</span>
+ </div>
+
+ <div class="timer-ring-container">
+ <svg class="timer-svg" viewBox="0 0 220 220">
+ <circle class="timer-circle-bg" cx="110" cy="110" r="95"></circle>
+ <circle class="timer-circle-progress" id="timerCircle" cx="110" cy="110" r="95"></circle>
+ </svg>
+ <div class="timer-center">
+ <div class="timer-digits" id="timerDigits">25:00</div>
+ <div class="timer-phase" id="timerPhase">FOCUS SESSION</div>
+ </div>
+ </div>
+
+ <div class="round-dots-row">
+ <div class="round-dot" id="dot1"></div>
+ <div class="round-dot" id="dot2"></div>
+ <div class="round-dot" id="dot3"></div>
+ <div class="round-dot" id="dot4"></div>
+ </div>
+
+ <div class="timer-controls">
+ <button class="btn-timer-sec" onclick="resetTimer()" title="Reset">
+ <i class="bi bi-arrow-counterclockwise"></i>
+ </button>
+ <button class="btn-timer-main" id="timerMainBtn" onclick="toggleTimer()">
+ <i class="bi bi-play-fill" id="timerMainIcon"></i> <span id="timerMainText">Start Focus</span>
+ </button>
+ <button class="btn-timer-sec" onclick="startBreak()" title="Take Break">
+ <i class="bi bi-cup-hot"></i>
+ </button>
+ </div>
+ </div>
+
+ <!-- Interactive Sprint Milestones (Mobile) -->
+ <div class="milestones-card" id="mobileMilestonesCard">
+ <div class="milestones-header">
+ <span><i class="bi bi-bullseye"></i> Sprint Milestones</span>
+ <span style="font-size:0.7rem;cursor:pointer;color:var(--primary)" onclick="loadMobileMilestones(S.sessionId, S.topic)">
+ <i class="bi bi-arrow-repeat"></i> Regenerate
+ </span>
+ </div>
+ <div id="mobileMilestonesList">
+ <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:6px">Start focus to generate active milestones</div>
+ </div>
+ </div>
+
+ <!-- Quick Recall Challenge Trigger -->
+ <button class="btn-challenge-trigger" onclick="triggerMobileChallenge()">
+ <i class="bi bi-lightning-charge-fill"></i> Quick Recall Challenge (+30 KP)
+ </button>
+
+ <!-- Instant Tutor Clarify -->
+ <div style="margin-top:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:12px">
+ <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);margin-bottom:6px">
+ <i class="bi bi-chat-quote"></i> Quick Session Tutor
+ </div>
+ <div style="display:flex;gap:6px">
+ <input type="text" id="mobileClarifyInput" class="custom-time-input" placeholder="Ask question about topic..." style="flex:1;text-align:left;font-size:0.8rem;padding:8px 10px" onkeydown="if(event.key==='Enter') askMobileClarify()"/>
+ <button class="btn-timer-main" style="padding:8px 14px;font-size:0.85rem;border-radius:8px" onclick="askMobileClarify()">
+ <i class="bi bi-send-fill"></i>
+ </button>
+ </div>
+ <div id="mobileClarifyAnswer" style="display:none;font-size:0.78rem;padding:8px;background:rgba(67,97,238,0.06);border:1px solid rgba(67,97,238,0.2);border-radius:8px;margin-top:8px;line-height:1.4"></div>
+ </div>
+
+ <!-- End Session Button (Only shown when a session is active) -->
+ <div id="mobileEndSessionWrap" style="margin-top:12px;display:none">
+ <button class="install-btn w100" id="mobileEndSessionBtn" style="width:100%;border-radius:10px;padding:11px;font-size:0.84rem;font-weight:700;color:#dc2626;border:1.5px solid #fca5a5;background:#fef2f2;box-shadow:none;display:flex;align-items:center;justify-content:center;gap:6px" onclick="endMobileSession()">
+ <i class="bi bi-stop-circle-fill"></i> End Session
+ </button>
+ </div>
+
+ <!-- Live Session Stats -->
+ <div class="section-title" style="margin-top:14px">
+ <span>Focus Stats</span>
+ <span style="font-size:0.75rem;color:var(--primary)" onclick="syncWithServer()"><i class="bi bi-arrow-repeat"></i> Sync</span>
+ </div>
+ <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-bottom:16px">
+ <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+ <div style="font-size:1.1rem;font-weight:800;color:#38bdf8" id="statElapsed">0m</div>
+ <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px">Today's Focus</div>
+ </div>
+ <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+ <div style="font-size:1.1rem;font-weight:800;color:#4ade80" id="statRounds">0</div>
+ <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px">Rounds Done</div>
+ </div>
+ <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+ <div style="font-size:1.1rem;font-weight:800;color:#facc15" id="statScore">0%</div>
+ <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px">Focus Score</div>
+ </div>
+ </div>
+ </main>
+
+ <!-- TAB 2: Reminders & Schedule -->
+ <main class="tab-view" id="tab-reminders">
+ <div class="section-title">
+ <span> Quick Alarm</span>
+ </div>
+ <div class="quick-remind-grid">
+ <div class="quick-chip" onclick="scheduleQuickAlarm(15, '15-Min Quick Sprint')">
+ <div class="quick-chip-time">+15 mins</div>
+ <div class="quick-chip-label">Quick Sprint</div>
+ </div>
+ <div class="quick-chip" onclick="scheduleQuickAlarm(30, '30-Min Focused Review')">
+ <div class="quick-chip-time">+30 mins</div>
+ <div class="quick-chip-label">Topic Review</div>
+ </div>
+ <div class="quick-chip" onclick="scheduleQuickAlarm(60, '1-Hour Deep Study')">
+ <div class="quick-chip-time">+1 hour</div>
+ <div class="quick-chip-label">Deep Study</div>
+ </div>
+ <div class="quick-chip" onclick="scheduleQuickAlarm('tonight', 'Evening Revision')">
+ <div class="quick-chip-time">Tonight 8PM</div>
+ <div class="quick-chip-label">Night Session</div>
+ </div>
+ </div>
+
+ <!-- Custom Date & Time Schedule Card -->
+ <div class="section-title" style="margin-top:16px">
+ <span> Set Custom Reminder</span>
+ </div>
+ <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow-sm);margin-bottom:18px">
+ <div style="margin-bottom:12px">
+ <label style="display:block;font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px">Topic / Subject</label>
+ <input type="text" id="mobileCustomTopic" placeholder="e.g. Operating Systems Ch2" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:0.88rem;outline:none">
+ </div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+ <div>
+ <label style="display:block;font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px">Date &amp; Time</label>
+ <input type="datetime-local" id="mobileCustomDateTime" style="width:100%;box-sizing:border-box;padding:9px 10px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:0.82rem;outline:none" onchange="validateMobileCustomDateTime(this)">
+ </div>
+ <div>
+ <label style="display:block;font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px">Duration</label>
+ <select id="mobileCustomDuration" style="width:100%;box-sizing:border-box;padding:9px 10px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:0.82rem;outline:none">
+ <option value="15">15 mins</option>
+ <option value="25" selected>25 mins (Pomodoro)</option>
+ <option value="45">45 mins</option>
+ <option value="60">60 mins (1 hour)</option>
+ <option value="90">90 mins</option>
+ </select>
+ </div>
+ </div>
+ <button onclick="scheduleMobileCustomAlarm()" style="width:100%;padding:11px;background:var(--grad);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.88rem;cursor:pointer;box-shadow:0 4px 12px rgba(67,97,238,0.3);display:flex;align-items:center;justify-content:center;gap:6px">
+ <i class="bi bi-alarm-fill"></i> Set Custom Alarm &amp; Plan
+ </button>
+ </div>
+
+ <div class="section-title">
+ <span>Today's Schedule</span>
+ <span style="font-size:0.75rem;color:var(--primary)" onclick="loadTodaySchedule()"><i class="bi bi-arrow-repeat"></i> Refresh</span>
+ </div>
+ <div id="todayScheduleList">
+ <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.85rem">
+ <i class="bi bi-calendar-check" style="font-size:1.6rem;display:block;margin-bottom:8px"></i>
+ No study sessions scheduled for today.
+ </div>
+ </div>
+ </main>
+
+ <!-- TAB 3: Activity & Diagnostics -->
+ <main class="tab-view" id="tab-activity">
+ <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px">
+ <div style="display:flex;align-items:center;justify-content:space-between">
+ <div>
+ <div style="font-size:0.76rem;color:var(--text-muted);text-transform:uppercase;font-weight:700">Knowledge Tier</div>
+ <div style="font-size:1.3rem;font-weight:800;color:#818cf8;margin-top:2px" id="tierName">Expert Tier</div>
+ </div>
+ <div style="text-align:right">
+ <div style="font-size:0.76rem;color:var(--text-muted);text-transform:uppercase;font-weight:700">Points</div>
+ <div style="font-size:1.3rem;font-weight:800;color:#38bdf8" id="pointsVal">4,930</div>
+ </div>
+ </div>
+ </div>
+
+ <div class="section-title">Cognitive Strengths</div>
+ <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm)">
+ <div style="margin-bottom:12px">
+ <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:4px">
+ <span>Logical Reasoning</span>
+ <span style="font-weight:700;color:var(--primary)">59.6%</span>
+ </div>
+ <div style="background:#f1f5f9;height:6px;border-radius:3px;overflow:hidden">
+ <div style="background:var(--primary);width:59.6%;height:100%"></div>
+ </div>
+ </div>
+ <div style="margin-bottom:12px">
+ <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:4px">
+ <span>Creative Application</span>
+ <span style="font-weight:700;color:var(--accent)">49.1%</span>
+ </div>
+ <div style="background:#f1f5f9;height:6px;border-radius:3px;overflow:hidden">
+ <div style="background:var(--accent);width:49.1%;height:100%"></div>
+ </div>
+ </div>
+ <div style="margin-bottom:12px">
+ <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:4px">
+ <span>Critical Thinking</span>
+ <span style="font-weight:700;color:var(--warning)">44.4%</span>
+ </div>
+ <div style="background:#f1f5f9;height:6px;border-radius:3px;overflow:hidden">
+ <div style="background:var(--warning);width:44.4%;height:100%"></div>
+ </div>
+ </div>
+ <div>
+ <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:4px">
+ <span>Cognitive Memory (Focus Area)</span>
+ <span style="font-weight:700;color:var(--danger)">41.5%</span>
+ </div>
+ <div style="background:#f1f5f9;height:6px;border-radius:3px;overflow:hidden">
+ <div style="background:var(--danger);width:41.5%;height:100%"></div>
+ </div>
+ </div>
+ </div>
+
+ <button class="btn-timer-main" onclick="window.location.href='/dashboard#test'" style="width:100%">
+ <i class="bi bi-pencil-square"></i> Open Exam Room on Laptop
+ </button>
+ </main>
+
+ <!-- TAB 4: Alerts & Settings -->
+ <main class="tab-view" id="tab-settings">
+ <!-- Pause Reminders (Do Not Disturb) Card -->
+ <div class="setting-item" id="mobileDndCard" style="background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow-sm)">
+ <div style="flex:1;padding-right:10px">
+ <div style="display:flex;align-items:center;gap:8px">
+ <i class="bi bi-bell-fill" id="mobileDndIcon" style="font-size:1.1rem;color:var(--success)"></i>
+ <div class="setting-label" id="mobileDndTitle" style="font-size:0.92rem;font-weight:700;color:var(--text)">Reminders: Active</div>
+ </div>
+ <div class="setting-desc" id="mobileDndDesc" style="margin-top:4px">Mute alarms, lock-screen alerts &amp; audio chimes when busy.</div>
+ </div>
+ <button class="install-btn" id="mobileDndBtn" onclick="openMobilePauseModal()" style="background:var(--grad);padding:7px 14px;font-size:0.8rem;border-radius:8px;font-weight:700;white-space:nowrap">
+ Pause
+ </button>
+ </div>
+
+ <div class="section-title">Alert Capabilities</div>
+
+ <div class="setting-item">
+ <div>
+ <div class="setting-label">Mobile Push Notifications</div>
+ <div class="setting-desc" id="pushStatusDesc">Wakes phone with lock-screen alerts</div>
+ </div>
+ <button class="install-btn" id="enablePushBtn" onclick="enablePush()">Enable</button>
+ </div>
+
+ <div class="setting-item">
+ <div>
+ <div class="setting-label">Test Mobile Alert</div>
+ <div class="setting-desc">Dispatches immediate test notification</div>
+ </div>
+ <button class="install-btn" style="background:var(--primary)" onclick="testAlert()">Test Alert</button>
+ </div>
+
+ <div class="setting-item">
+ <div>
+ <div class="setting-label">Test Audio Chime</div>
+ <div class="setting-desc">Web Audio two-tone bell sound</div>
+ </div>
+ <button class="install-btn" style="background:var(--success)" onclick="playChimeSound()">Play Chime</button>
+ </div>
+
+ <div class="setting-item">
+ <div>
+ <div class="setting-label">Test Phone Vibration</div>
+ <div class="setting-desc">Haptic motor pattern test</div>
+ </div>
+ <button class="install-btn" style="background:var(--warning)" onclick="triggerVibration()">Vibrate</button>
+ </div>
+
+ <div class="section-title" style="margin-top:18px">Native Android App</div>
+ <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow-sm);margin-bottom:14px">
+ <div style="font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px">
+ <i class="bi bi-android2" style="color:var(--success)"></i> StudyEdge Android APK (v1.1.2)
+ </div>
+ <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px">
+ Fires exact hardware alarms &amp; notifications even when the app is completely closed or your phone is locked. Includes universal Hotspot &amp; Wi-Fi auto-discovery.
+ </div>
+ <a href="/download/StudyEdge.apk?v=1.1.2" download class="btn-primary" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:10px;text-decoration:none;background:var(--success);color:white;border-radius:8px;font-weight:700;font-size:0.85rem">
+ <i class="bi bi-download"></i> Download Latest APK (v1.1.2 Auto Discovery)
+ </a>
+ </div>
+
+ <div class="section-title" style="margin-top:18px">Device Connection</div>
+ <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:0.78rem;color:var(--text-muted);line-height:1.5;box-shadow:var(--shadow-sm)">
+ <div style="color:var(--text);font-weight:700;margin-bottom:4px">Connected Student: <span style="color:var(--primary)" id="settingStudentName">Student</span></div>
+ <div>Server: <span id="serverHost">Loading...</span></div>
+ <div>Storage: Pure Local System Files (No SQL)</div>
+ </div>
+ </main>
+
+ <!-- Mobile Pause Reminders Modal -->
+ <div class="mobile-modal-overlay" id="mobilePauseModal" style="display:none;z-index:999">
+ <div class="mobile-modal-box">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+ <div style="display:flex;align-items:center;gap:8px">
+ <div style="width:34px;height:34px;border-radius:9px;background:rgba(230,57,128,0.15);color:var(--danger);display:flex;align-items:center;justify-content:center;font-size:1.1rem">
+ <i class="bi bi-bell-slash-fill"></i>
+ </div>
+ <div>
+ <div style="font-weight:800;font-size:0.95rem;color:var(--text)">Pause Reminders &amp; Alarms</div>
+ <div style="font-size:0.72rem;color:var(--text-muted)">Do Not Disturb (Silence all alerts)</div>
+ </div>
+ </div>
+ <button class="icon-btn" style="background:#f1f5f9;color:var(--text);border:1px solid var(--border)" onclick="closeMobilePauseModal()"><i class="bi bi-x-lg"></i></button>
+ </div>
+
+ <!-- Mobile Active Banner -->
+ <div id="mPauseActiveBanner" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 12px;margin-bottom:14px">
+ <div style="display:flex;align-items:center;justify-content:space-between">
+ <div style="font-size:0.8rem;font-weight:700;color:#991b1b;display:flex;align-items:center;gap:6px">
+ <i class="bi bi-bell-slash-fill"></i> Reminders are PAUSED
+ </div>
+ <button class="install-btn" onclick="resumeMobileReminders()" style="background:var(--success);font-size:0.75rem;padding:4px 10px;border-radius:6px;font-weight:700">
+ Resume Now
+ </button>
+ </div>
+ <div style="font-size:0.7rem;color:#b91c1c;margin-top:4px" id="mPauseRemainingText">Alarms and study reminders are silenced.</div>
+ </div>
+
+ <div style="font-size:0.8rem;font-weight:700;color:var(--text);margin-bottom:8px">
+ Select how long to silence reminders:
+ </div>
+
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+ <button class="mobile-pause-preset" onclick="pauseMobileReminders(30)">
+ <div class="mobile-pause-preset-title"><i class="bi bi-stopwatch" style="color:var(--primary)"></i> 30 Mins</div>
+ <div class="mobile-pause-preset-sub">Quick break / call</div>
+ </button>
+ <button class="mobile-pause-preset" onclick="pauseMobileReminders(60)">
+ <div class="mobile-pause-preset-title"><i class="bi bi-clock" style="color:var(--primary)"></i> 1 Hour</div>
+ <div class="mobile-pause-preset-sub">Meeting / busy</div>
+ </button>
+ <button class="mobile-pause-preset" onclick="pauseMobileReminders(120)">
+ <div class="mobile-pause-preset-title"><i class="bi bi-hourglass-split" style="color:var(--primary)"></i> 2 Hours</div>
+ <div class="mobile-pause-preset-sub">Deep other work</div>
+ </button>
+ <button class="mobile-pause-preset" onclick="pauseMobileReminders(240)">
+ <div class="mobile-pause-preset-title"><i class="bi bi-calendar-event" style="color:var(--primary)"></i> 4 Hours</div>
+ <div class="mobile-pause-preset-sub">Half-day silence</div>
+ </button>
+ <button class="mobile-pause-preset" onclick="pauseMobileReminders(480)">
+ <div class="mobile-pause-preset-title"><i class="bi bi-moon-stars-fill" style="color:var(--primary)"></i> 8 Hours</div>
+ <div class="mobile-pause-preset-sub">Silence tonight</div>
+ </button>
+ <button class="mobile-pause-preset" onclick="pauseMobileReminders(-1)">
+ <div class="mobile-pause-preset-title"><i class="bi bi-slash-circle" style="color:var(--primary)"></i> Indefinitely</div>
+ <div class="mobile-pause-preset-sub">Until resumed</div>
+ </button>
+ </div>
+
+ <button class="install-btn w100" onclick="closeMobilePauseModal()" style="width:100%;padding:11px;background:#f1f5f9;color:var(--text);border:1px solid var(--border);border-radius:10px;font-weight:700;font-size:0.85rem">Close</button>
+ </div>
+ </div>
+
+ <!-- Mobile Recall Challenge Modal -->
+ <div class="mobile-modal-overlay" id="mobileChallengeModal" style="display:none">
+ <div class="mobile-modal-box">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+ <div style="display:flex;align-items:center;gap:8px">
+ <div style="width:32px;height:32px;border-radius:8px;background:var(--warning);color:white;display:flex;align-items:center;justify-content:center;font-size:1.1rem">
+ <i class="bi bi-lightning-charge-fill"></i>
+ </div>
+ <div>
+ <div style="font-weight:800;font-size:0.92rem;color:var(--text)">Recall Challenge</div>
+ <div style="font-size:0.7rem;color:var(--text-muted)">Active concept test (+30 KP)</div>
+ </div>
+ </div>
+ <button class="icon-btn" style="background:#f1f5f9;color:var(--text);border:1px solid var(--border)" onclick="closeMobileChallenge()"><i class="bi bi-x-lg"></i></button>
+ </div>
+
+ <div id="mChallengeLoading" style="text-align:center;padding:20px 0">
+ <div class="spinner-sm" style="margin:0 auto 8px"></div>
+ <div style="font-size:0.78rem;color:var(--text-muted)">AI generating active question from notes...</div>
+ </div>
+
+ <div id="mChallengeContent" style="display:none">
+ <div id="mChallengeQuestion" style="font-size:0.88rem;font-weight:700;line-height:1.4;margin-bottom:14px;color:var(--text)"></div>
+ <div id="mChallengeOptions" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+ <div id="mChallengeFeedback" style="display:none;padding:10px;border-radius:8px;font-size:0.78rem;line-height:1.4;margin-bottom:10px"></div>
+ <button class="btn-timer-sec" style="width:100%;padding:8px" onclick="closeMobileChallenge()">Done</button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Mobile Session Conflict Resolution Modal -->
+ <div class="mobile-modal-overlay" id="mobileConflictModal" style="display:none">
+ <div class="mobile-modal-box">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+ <div style="display:flex;align-items:center;gap:8px">
+ <div style="width:34px;height:34px;border-radius:8px;background:var(--danger);color:white;display:flex;align-items:center;justify-content:center;font-size:1.1rem">
+ <i class="bi bi-exclamation-triangle-fill"></i>
+ </div>
+ <div>
+ <div style="font-weight:800;font-size:0.95rem;color:var(--text)">Session In Progress</div>
+ <div style="font-size:0.7rem;color:var(--text-muted)">A focus session is currently running.</div>
+ </div>
+ </div>
+ <button class="icon-btn" style="background:#f1f5f9;color:var(--text);border:1px solid var(--border)" onclick="resolveMobileConflict('cancel')"><i class="bi bi-x-lg"></i></button>
+ </div>
+
+ <div style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:12px;font-size:0.8rem">
+ <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+ <span style="color:var(--text-muted)">Current:</span>
+ <strong id="mConflictCurrentTopic" style="color:var(--primary)">—</strong>
+ </div>
+ <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+ <span style="color:var(--text-muted)">Remaining:</span>
+ <strong id="mConflictCurrentTime" style="color:var(--text)">25:00</strong>
+ </div>
+ <div style="display:flex;justify-content:space-between">
+ <span style="color:var(--text-muted)">New Requested:</span>
+ <strong id="mConflictNewTopic" style="color:var(--success)">—</strong>
+ </div>
+ </div>
+
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+ <button class="btn-timer-sec" style="color:var(--warning);border-color:var(--warning);font-weight:700" onclick="resolveMobileConflict('pause')">
+ <i class="bi bi-pause-circle"></i> Pause
+ </button>
+ <button class="btn-timer-sec" style="color:var(--success);border-color:var(--success);font-weight:700" onclick="resolveMobileConflict('continue')">
+ <i class="bi bi-play-circle"></i> Continue
+ </button>
+ <button class="install-btn" style="background:var(--danger);grid-column:span 2;padding:10px" onclick="resolveMobileConflict('override')">
+ <i class="bi bi-arrow-repeat"></i> Override &amp; Start New
+ </button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Bottom Nav -->
+ <nav class="mobile-bottom-nav">
+ <div class="nav-tab active" onclick="switchTab('focus')">
+ <i class="bi bi-stopwatch-fill"></i>
+ <span>Focus</span>
+ </div>
+ <div class="nav-tab" onclick="switchTab('reminders')">
+ <i class="bi bi-alarm-fill"></i>
+ <span>Reminders</span>
+ </div>
+ <div class="nav-tab" onclick="switchTab('activity')">
+ <i class="bi bi-bar-chart-line-fill"></i>
+ <span>Progress</span>
+ </div>
+ <div class="nav-tab" onclick="switchTab('settings')">
+ <i class="bi bi-gear-fill"></i>
+ <span>Alerts</span>
+ </div>
+ </nav>
+
+ <!-- Toast Element -->
+ <div class="toast-msg" id="toastMsg"></div>
+
+ <!-- Socket.IO & Mobile Script -->
+ <script src="/static/socket.io.min.js"></script>
+ <script>
+ // ── Global State ──
+ const S = {
+ studentId: localStorage.getItem('student_id') || '1',
+ studentName: localStorage.getItem('student_name') || 'Student',
+ sessionId: localStorage.getItem('session_id') || null,
+ topic: localStorage.getItem('session_topic') || 'General Focus',
+ pomodoroSecs: 25 * 60,
+ currentSecs: 25 * 60,
+ isRunning: false,
+ isBreak: false,
+ round: 1,
+ timerInterval: null,
+ remindersPaused: false
+ };
+
+ const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 95; // ~596.9
+
+ // ── PWA Install Handling ──
+ let deferredPrompt = null;
+ window.addEventListener('beforeinstallprompt', e => {
+ e.preventDefault();
+ deferredPrompt = e;
+ const b = document.getElementById('pwaInstallBanner');
+ if (b) b.style.display = 'flex';
+ });
+
+ function triggerPWAInstall() {
+ if (deferredPrompt) {
+ deferredPrompt.prompt();
+ deferredPrompt.userChoice.then(choice => {
+ if (choice.outcome === 'accepted') {
+ showToast(' Installing StudyEdge on your home screen!');
+ document.getElementById('pwaInstallBanner').style.display = 'none';
+ }
+ deferredPrompt = null;
+ });
+ } else {
+ showToast('Tip: In Chrome menu, tap "Add to Home screen" or "Install App".');
+ }
+ }
+
+ // ── Service Worker Registration ──
+ if ('serviceWorker' in navigator) {
+ navigator.serviceWorker.register('/sw.js', { scope: '/' })
+ .then(r => console.log('[Mobile SW]', r.scope))
+ .catch(e => console.warn('[Mobile SW Error]', e));
+ }
+
+ // ── Device Alert Dispatcher (Native Android Bridge + Audio + Vibration) ──
+ function dispatchMobileAlert(title, message) {
+ if (S.remindersPaused) {
+ console.log('[Mobile Alert] Suppressed notification & chime because reminders are paused (DND mode).');
+ return;
+ }
+
+ // 1. Native Android APK Bridge
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.postNotification === 'function') {
+ try {
+ window.StudyEdgeBridge.postNotification(title, message);
+ } catch (e) {
+ console.warn('[Bridge Notification Error]', e);
+ }
+ }
+ // 2. Web Notification API (if granted)
+ else if (window.Notification && Notification.permission === 'granted') {
+ try {
+ new Notification(title, { body: message, icon: '/static/icon-192.png' });
+ } catch (e) {
+ if (navigator.serviceWorker) {
+ navigator.serviceWorker.ready.then(reg => {
+ reg.showNotification(title, { body: message, icon: '/static/icon-192.png' });
+ });
+ }
+ }
+ }
+
+ // 3. Audio Chime & Haptic Vibration
+ playChimeSound();
+ triggerVibration([300, 150, 300, 150, 400]);
+ showToast(`${title}: ${message}`);
+ }
+
+ function updateMobileSessionControls(hasActive) {
+ const wrap = document.getElementById('mobileEndSessionWrap');
+ if (wrap) {
+ wrap.style.display = hasActive ? 'block' : 'none';
+ }
+ }
+
+ // ── Socket.IO Connection & Multi-Device Lockstep Sync ──
+ var socket = (typeof io !== 'undefined') ? io() : null;
+ if (socket) {
+ socket.on('connect', () => {
+ console.log('[Mobile Socket] Connected');
+ if (S.sessionId) socket.emit('rejoin', { session_id: S.sessionId });
+ });
+
+ socket.on('plans_updated', data => {
+ if (data && data.student_id && String(data.student_id) !== String(S.studentId || 1)) return;
+ console.log('[Mobile WS] plans_updated event:', data);
+ loadTodaySchedule();
+ checkMobileReminders();
+ if (data.topic) {
+ showToast(` Reminder Updated: "${data.topic}"`);
+ }
+ });
+
+ socket.on('reminders_status_changed', data => {
+ if (data && data.student_id && String(data.student_id) !== String(S.studentId || 1)) return;
+ console.log('[Mobile WS] reminders_status_changed event:', data);
+ updateMobileRemindersUI(data);
+
+ // Native Android Bridge & Service Worker strict sync
+ if (data.paused) {
+ const remMins = data.remaining_minutes || 60;
+ const untilMillis = remMins === -1 ? -1 : (Date.now() + remMins * 60 * 1000);
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.setDndActive === 'function') {
+ window.StudyEdgeBridge.setDndActive(true, untilMillis);
+ }
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.cancelAllAlarms === 'function') {
+ window.StudyEdgeBridge.cancelAllAlarms();
+ }
+ // Clear any browser / PWA local alarms
+ if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+ navigator.serviceWorker.controller.postMessage({ type: 'CANCEL_ALL_LOCAL_ALARMS' });
+ }
+ } else {
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.setDndActive === 'function') {
+ window.StudyEdgeBridge.setDndActive(false, 0);
+ }
+ }
+ });
+
+ socket.on('timer_tick', data => {
+ // Adopt session automatically if not set or changed
+ if (!S.sessionId || String(data.session_id) !== String(S.sessionId)) {
+ S.sessionId = data.session_id;
+ localStorage.setItem('session_id', S.sessionId);
+ }
+ if (data.topic && data.topic !== S.topic) {
+ S.topic = data.topic;
+ localStorage.setItem('session_topic', S.topic);
+ const tEl = document.getElementById('activeTopicText');
+ if (tEl) tEl.textContent = data.topic;
+ }
+ S.isBreak = data.is_break;
+ if (data.round) {
+ S.round = data.round;
+ updateRoundDots(data.round);
+ }
+ updateTimerDisplay(data.seconds_left, data.is_break, data.progress_pct);
+ setPlayBtnState(true);
+ updateMobileSessionControls(true);
+ });
+
+ socket.on('timer_paused', data => {
+ if (String(data.session_id) !== String(S.sessionId)) return;
+ setPlayBtnState(false);
+ clearInterval(S.timerInterval);
+ if (data.seconds_left !== undefined) {
+ S.currentSecs = data.seconds_left;
+ updateTimerDisplay(data.seconds_left, S.isBreak);
+ }
+ showToast(' Timer paused.');
+ });
+
+ socket.on('timer_reset', data => {
+ if (String(data.session_id) !== String(S.sessionId)) return;
+ setPlayBtnState(false);
+ clearInterval(S.timerInterval);
+ S.currentSecs = data.seconds_left || 25 * 60;
+ updateTimerDisplay(S.currentSecs, false, 0);
+ showToast(' Timer reset.');
+ });
+
+ socket.on('timer_done', data => {
+ onTimerComplete(data.is_break);
+ dispatchMobileAlert(' StudyEdge Timer Complete', data.message || (data.is_break ? 'Break is finished! Time to study.' : 'Focus sprint complete! Take a break.'));
+ });
+
+ socket.on('milestones_updated', data => {
+ if (data.session_id && String(data.session_id) === String(S.sessionId)) {
+ console.log('[Mobile WS] milestones_updated received:', data.milestones);
+ renderMobileMilestones(data.milestones);
+ }
+ });
+
+ socket.on('session_started', data => {
+ if (data.student_id && String(data.student_id) !== String(S.studentId)) return;
+ console.log('[Mobile WS] Session started on another device:', data);
+ S.sessionId = data.session_id;
+ S.topic = data.topic;
+ localStorage.setItem('session_id', S.sessionId);
+ localStorage.setItem('session_topic', S.topic);
+
+ const tEl = document.getElementById('activeTopicText');
+ if (tEl) tEl.textContent = data.topic;
+ loadMobileMilestones(data.session_id, data.topic);
+ loadTodaySchedule();
+ showToast(`▶ Active session: "${data.topic}"`);
+ updateMobileSessionControls(true);
+ });
+
+ socket.on('session_ended', data => {
+ if (data && data.student_id && String(data.student_id) !== String(S.studentId || 1)) return;
+ console.log('[Mobile WS] Session ended on another device:', data);
+
+ if (typeof _mobileCurriculumAbortController !== 'undefined' && _mobileCurriculumAbortController) {
+ try { _mobileCurriculumAbortController.abort(); } catch (e) {}
+ _mobileCurriculumAbortController = null;
+ }
+
+ S.sessionId = null;
+ localStorage.removeItem('session_id');
+ localStorage.removeItem('session_topic');
+
+ setPlayBtnState(false);
+ clearInterval(S.timerInterval);
+ S.currentSecs = 25 * 60;
+ S.isBreak = false;
+ updateTimerDisplay(S.currentSecs, false, 0);
+
+ const tEl = document.getElementById('activeTopicText');
+ if (tEl) tEl.textContent = 'Ready to Study';
+ const mList = document.getElementById('mobileMilestonesList');
+ if (mList) mList.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted);text-align:center;padding:12px">No active study session. Start a session to load AI milestones.</div>';
+ updateMobileSessionControls(false);
+ loadTodaySchedule();
+ showToast('Session ended cleanly.');
+ });
+ }
+
+ // ── Multi-Device Active Session Synchronization ──
+ function syncActiveSessionMobile() {
+ fetch('/session/active?student_id=' + (S.studentId || 1))
+ .then(r => r.json())
+ .then(d => {
+ if (d.has_active) {
+ S.sessionId = d.session_id;
+ localStorage.setItem('session_id', S.sessionId);
+ S.topic = d.topic || 'General Focus';
+ localStorage.setItem('session_topic', S.topic);
+ S.currentSecs = d.seconds_left;
+ S.isBreak = d.is_break;
+ S.round = d.round || 1;
+ S.isRunning = d.running;
+
+ const tEl = document.getElementById('activeTopicText');
+ if (tEl) tEl.textContent = S.topic;
+ updateRoundDots(S.round);
+
+ const total = S.isBreak ? (d.break_type === 'long' ? 15*60 : 5*60) : 25*60;
+ const pct = Math.round(((total - S.currentSecs) / total) * 100);
+ updateTimerDisplay(S.currentSecs, S.isBreak, pct);
+ setPlayBtnState(S.isRunning);
+ updateMobileSessionControls(true);
+
+ if (d.milestones && d.milestones.length > 0) {
+ renderMobileMilestones(d.milestones);
+ } else {
+ loadMobileMilestones(d.session_id, S.topic);
+ }
+ } else {
+ S.sessionId = null;
+ localStorage.removeItem('session_id');
+ localStorage.removeItem('session_topic');
+ setPlayBtnState(false);
+ clearInterval(S.timerInterval);
+ S.currentSecs = 25 * 60;
+ S.isBreak = false;
+ updateTimerDisplay(S.currentSecs, false, 0);
+ const tEl = document.getElementById('activeTopicText');
+ if (tEl) tEl.textContent = 'Ready to Study';
+ const mList = document.getElementById('mobileMilestonesList');
+ if (mList && !mList.innerHTML.includes('No active study session')) {
+ mList.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted);text-align:center;padding:12px">No active study session. Start a session to load AI milestones.</div>';
+ }
+ updateMobileSessionControls(false);
+ }
+ })
+ .catch(err => console.log('[Session sync note]', err));
+ }
+
+ // ── Tab Switching ──
+ function switchTab(tabId) {
+ document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
+ document.querySelectorAll('.nav-tab').forEach(n => n.classList.remove('active'));
+
+ const targetView = document.getElementById(`tab-${tabId}`);
+ if (targetView) targetView.classList.add('active');
+
+ const tabs = ['focus', 'reminders', 'activity', 'settings'];
+ const idx = tabs.indexOf(tabId);
+ if (idx !== -1) {
+ const navs = document.querySelectorAll('.nav-tab');
+ if (navs[idx]) navs[idx].classList.add('active');
+ }
+
+ if (tabId === 'focus') syncActiveSessionMobile();
+ if (tabId === 'reminders') loadTodaySchedule();
+ if (tabId === 'activity') loadProgressStats();
+ }
+
+ // ── Timer Logic ──
+ function updateTimerDisplay(secs, isBreak, progressPct) {
+ S.currentSecs = secs;
+ const mins = Math.floor(secs / 60);
+ const s = secs % 60;
+ const timeStr = `${String(mins).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+ 
+ document.getElementById('timerDigits').textContent = timeStr;
+ document.getElementById('timerPhase').textContent = isBreak ? 'BREAK TIME' : 'FOCUS SESSION';
+ 
+ // Update SVG Ring
+ const circle = document.getElementById('timerCircle');
+ if (circle) {
+ const total = isBreak ? (5 * 60) : (25 * 60);
+ const pct = progressPct !== undefined ? progressPct : ((total - secs) / total) * 100;
+ const offset = CIRCLE_CIRCUMFERENCE - (pct / 100) * CIRCLE_CIRCUMFERENCE;
+ circle.style.strokeDashoffset = offset;
+ circle.style.stroke = isBreak ? 'var(--success)' : 'var(--primary)';
+ }
+ }
+
+ function setPlayBtnState(running) {
+ S.isRunning = running;
+ const icon = document.getElementById('timerMainIcon');
+ const text = document.getElementById('timerMainText');
+ if (icon) icon.className = running ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+ if (text) text.textContent = running ? 'Pause' : 'Start Focus';
+ }
+
+ function toggleTimer() {
+ if (S.isRunning) {
+ pauseTimer();
+ } else {
+ startTimer();
+ }
+ }
+
+ function startTimer() {
+ if (!S.sessionId) {
+ // Do not auto start phantom session! Prompt student for topic if not set
+ if (!S.topic || S.topic === 'Ready to Study' || S.topic === 'General Focus') {
+ const userTopic = prompt("Enter a topic to study:", "Python");
+ if (!userTopic || !userTopic.trim()) {
+ showToast(' Enter a topic or tap a scheduled study plan to begin.');
+ return;
+ }
+ startMobileSessionWithTopic(userTopic.trim());
+ return;
+ }
+ startMobileSessionWithTopic(S.topic);
+ return;
+ }
+ runTimer();
+ }
+
+ let _mPendingNewTopic = null;
+
+ function promptMobileNewSession(newTopic) {
+ if (S.isRunning || S.sessionId) {
+ _mPendingNewTopic = newTopic;
+ const curTopicEl = document.getElementById('mConflictCurrentTopic');
+ if (curTopicEl) curTopicEl.textContent = S.topic || 'Current Session';
+ const curTimeEl = document.getElementById('mConflictCurrentTime');
+ if (curTimeEl) curTimeEl.textContent = document.getElementById('timerDigits')?.textContent || '25:00';
+ const newTopicEl = document.getElementById('mConflictNewTopic');
+ if (newTopicEl) newTopicEl.textContent = newTopic;
+ const modal = document.getElementById('mobileConflictModal');
+ if (modal) modal.style.display = 'flex';
+ } else {
+ startMobileSessionWithTopic(newTopic);
+ }
+ }
+
+ function resolveMobileConflict(action) {
+ const modal = document.getElementById('mobileConflictModal');
+ if (modal) modal.style.display = 'none';
+
+ if (action === 'pause') {
+ pauseTimer();
+ showToast(' Session paused.');
+ } else if (action === 'continue') {
+ runTimer();
+ showToast(' Continuing session.');
+ } else if (action === 'override') {
+ const nextTopic = _mPendingNewTopic || 'Focus Session';
+ _mPendingNewTopic = null;
+ if (S.sessionId) {
+ fetch('/session/end', {
+ method : 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body : JSON.stringify({ session_id: parseInt(S.sessionId), student_id: parseInt(S.studentId) })
+ }).finally(() => {
+ S.sessionId = null;
+ localStorage.removeItem('session_id');
+ startMobileSessionWithTopic(nextTopic);
+ });
+ } else {
+ startMobileSessionWithTopic(nextTopic);
+ }
+ } else if (action === 'cancel') {
+ _mPendingNewTopic = null;
+ showToast('Cancelled.');
+ }
+ }
+
+ function startMobileSessionWithTopic(topic) {
+ showToast(`Curating AI Study Plan for: "${topic}"...`);
+ fetch('/session/start', {
+ method : 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body : JSON.stringify({ student_id: parseInt(S.studentId), topic })
+ })
+ .then(r => r.json())
+ .then(d => {
+ S.sessionId = d.session_id;
+ localStorage.setItem('session_id', S.sessionId);
+ S.topic = topic;
+ localStorage.setItem('session_topic', S.topic);
+ const tEl = document.getElementById('activeTopicText');
+ if (tEl) tEl.textContent = topic;
+ loadMobileMilestones(S.sessionId, topic);
+ runTimer();
+ });
+ }
+
+ function runTimer() {
+ setPlayBtnState(true);
+ playChimeSound();
+ triggerVibration([100]);
+
+ if (socket && socket.connected) {
+ socket.emit('start_timer', {
+ session_id: S.sessionId,
+ student_id: S.studentId,
+ is_break: S.isBreak,
+ topic: S.topic
+ });
+ }
+
+ // Android Native Closed-App Alarm Scheduling
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.scheduleSystemAlarm === 'function') {
+ const delaySecs = S.currentSecs || (25 * 60);
+ window.StudyEdgeBridge.scheduleSystemAlarm(
+ ` StudyEdge: ${S.isBreak ? 'Break' : 'Focus Sprint'} Complete`,
+ `${S.isBreak ? 'Break is over! Time to resume your study sprint.' : 'Focus sprint complete on ' + S.topic + '! Take a break.'}`,
+ delaySecs,
+ 1001
+ );
+ }
+
+ // Only run client countdown fallback IF offline or socket disconnected!
+ clearInterval(S.timerInterval);
+ if (!socket || !socket.connected) {
+ S.timerInterval = setInterval(() => {
+ if (S.currentSecs > 0) {
+ S.currentSecs--;
+ updateTimerDisplay(S.currentSecs, S.isBreak);
+ } else {
+ clearInterval(S.timerInterval);
+ onTimerComplete(S.isBreak);
+ }
+ }, 1000);
+ }
+ }
+
+ function pauseTimer() {
+ setPlayBtnState(false);
+ clearInterval(S.timerInterval);
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.cancelSystemAlarm === 'function') {
+ window.StudyEdgeBridge.cancelSystemAlarm(1001);
+ }
+ if (socket) {
+ socket.emit('pause_timer', { session_id: S.sessionId });
+ }
+ }
+
+ function resetTimer() {
+ pauseTimer();
+ S.currentSecs = 25 * 60;
+ S.isBreak = false;
+ updateTimerDisplay(S.currentSecs, false, 0);
+ setPlayBtnState(false);
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.cancelSystemAlarm === 'function') {
+ window.StudyEdgeBridge.cancelSystemAlarm(1001);
+ }
+ if (socket) {
+ socket.emit('reset_timer', { session_id: S.sessionId });
+ }
+ }
+
+ let _mobileCurriculumAbortController = null;
+
+ function endMobileSession() {
+ if (_mobileCurriculumAbortController) {
+ try { _mobileCurriculumAbortController.abort(); } catch (e) {}
+ _mobileCurriculumAbortController = null;
+ }
+ const sid = S.sessionId || localStorage.getItem('session_id');
+ if (!sid) {
+ updateMobileSessionControls(false);
+ showToast('No active session.');
+ return;
+ }
+ S.sessionId = null;
+ localStorage.removeItem('session_id');
+ localStorage.removeItem('session_topic');
+ setPlayBtnState(false);
+ clearInterval(S.timerInterval);
+ S.currentSecs = 25 * 60;
+ S.isBreak = false;
+ updateTimerDisplay(S.currentSecs, false, 0);
+ const tEl = document.getElementById('activeTopicText');
+ if (tEl) tEl.textContent = 'Ready to Study';
+ const mList = document.getElementById('mobileMilestonesList');
+ if (mList) mList.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted);text-align:center;padding:12px">No active study session. Start a session to load AI milestones.</div>';
+ updateMobileSessionControls(false);
+ loadTodaySchedule();
+
+ fetch('/session/end', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ session_id: parseInt(sid), student_id: parseInt(S.studentId || 1) })
+ })
+ .then(r => r.json())
+ .then(() => {
+ showToast('Session ended cleanly.');
+ })
+ .catch(() => showToast('Session ended.'));
+ }
+
+ function startBreak(type = 'short') {
+ pauseTimer();
+ S.isBreak = true;
+ S.currentSecs = type === 'long' ? 15 * 60 : 5 * 60;
+ updateTimerDisplay(S.currentSecs, true, 0);
+ runTimer();
+ showToast(` ${type === 'long' ? '15-min Long' : '5-min'} Break Started!`);
+ }
+
+ function onTimerComplete(wasBreak) {
+ clearInterval(S.timerInterval);
+ setPlayBtnState(false);
+
+ if (!wasBreak) {
+ S.round = (S.round % 4) + 1;
+ updateRoundDots(S.round);
+ document.getElementById('timerDigits').textContent = 'Done!';
+ showToast(' Focus sprint complete! Great work.');
+ } else {
+ S.isBreak = false;
+ S.currentSecs = 25 * 60;
+ updateTimerDisplay(25 * 60, false, 0);
+ showToast(' Break ended! Ready to focus.');
+ }
+ syncWithServer();
+ }
+
+ function updateRoundDots(r) {
+ [1, 2, 3, 4].forEach(i => {
+ const dot = document.getElementById(`dot${i}`);
+ if (dot) dot.classList.toggle('active', i <= r);
+ });
+ }
+
+ // ── Interactive Sprint Milestones (Mobile) ──
+ function loadMobileMilestones(sessionId, topic) {
+ const container = document.getElementById('mobileMilestonesList');
+ if (container) container.innerHTML = '<div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:6px"><i class="bi bi-stars"></i> AI generating study milestones...</div>';
+
+ fetch('/session/interactive-plan', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ session_id: sessionId, topic: topic || S.topic, student_id: S.studentId || 1 })
+ })
+ .then(r => r.json())
+ .then(d => {
+ if (d && d.milestones) {
+ renderMobileMilestones(d.milestones);
+ }
+ })
+ .catch(() => {
+ if (container) container.innerHTML = '<div style="font-size:0.75rem;color:var(--text-muted)">1. Review core concepts<br>2. Practice key formulas<br>3. Active recall check</div>';
+ });
+ }
+
+ function renderMobileMilestones(milestones) {
+ const container = document.getElementById('mobileMilestonesList');
+ if (!container) return;
+ if (!milestones || milestones.length === 0) {
+ container.innerHTML = '<div style="font-size:0.75rem;color:var(--text-muted);padding:4px">No milestones yet. Tap regenerate.</div>';
+ return;
+ }
+
+ container.innerHTML = milestones.map((m, idx) => `
+ <div class="milestone-item ${m.done ? 'done' : ''}" onclick="toggleMobileMilestone(${idx})">
+ <input type="checkbox" class="milestone-cb" ${m.done ? 'checked' : ''} onclick="event.stopPropagation(); toggleMobileMilestone(${idx})"/>
+ <div class="milestone-content">
+ <div class="milestone-title">${escapeHtml(m.title)}</div>
+ <div class="milestone-goal">${escapeHtml(m.goal || m.tip || '')}</div>
+ </div>
+ </div>
+ `).join('');
+ }
+
+ function toggleMobileMilestone(idx) {
+ if (!S.sessionId) return;
+ fetch('/session/toggle-milestone', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ session_id: S.sessionId, index: idx })
+ })
+ .then(r => r.json())
+ .then(d => {
+ if (d.milestones) {
+ renderMobileMilestones(d.milestones);
+ playChimeSound();
+ triggerVibration([80]);
+ showToast(' Milestone completed! +15 KP');
+ }
+ });
+ }
+
+ // ── Quick Recall Challenge (Mobile) ──
+ function triggerMobileChallenge() {
+ const modal = document.getElementById('mobileChallengeModal');
+ const loading = document.getElementById('mChallengeLoading');
+ const content = document.getElementById('mChallengeContent');
+ const fb = document.getElementById('mChallengeFeedback');
+
+ if (modal) modal.style.display = 'flex';
+ if (loading) loading.style.display = 'block';
+ if (content) content.style.display = 'none';
+ if (fb) fb.style.display = 'none';
+
+ fetch('/session/challenge', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ topic: S.topic || 'General', student_id: S.studentId || 1 })
+ })
+ .then(r => r.json())
+ .then(d => {
+ if (loading) loading.style.display = 'none';
+ if (content) content.style.display = 'block';
+
+ const ch = d.challenge;
+ document.getElementById('mChallengeQuestion').textContent = ch.question;
+ const optsList = document.getElementById('mChallengeOptions');
+ optsList.innerHTML = ch.options.map((opt, i) => `
+ <button class="btn-timer-sec" style="text-align:left;padding:10px;font-size:0.84rem;width:100%;display:block;margin-bottom:6px"
+ onclick="selectMobileChallengeOption(${i}, ${ch.correct_index}, ${JSON.stringify(ch.explanation).replace(/"/g, '&quot;')})">
+ <strong>${String.fromCharCode(65 + i)}.</strong> ${escapeHtml(opt)}
+ </button>
+ `).join('');
+ })
+ .catch(() => {
+ if (loading) loading.innerHTML = '<div style="color:var(--danger);font-size:0.8rem">Could not load challenge. Please try again.</div>';
+ });
+ }
+
+ function selectMobileChallengeOption(selectedIdx, correctIdx, explanation) {
+ const fb = document.getElementById('mChallengeFeedback');
+ const btns = document.querySelectorAll('#mChallengeOptions button');
+ btns.forEach((btn, i) => {
+ btn.disabled = true;
+ if (i === correctIdx) {
+ btn.style.background = '#dcfce7';
+ btn.style.borderColor = '#86efac';
+ btn.style.color = '#15803d';
+ } else if (i === selectedIdx && selectedIdx !== correctIdx) {
+ btn.style.background = '#fee2e2';
+ btn.style.borderColor = '#fca5a5';
+ btn.style.color = '#b91c1c';
+ }
+ });
+
+ fetch('/session/verify-challenge', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({
+ session_id: S.sessionId,
+ student_id: S.studentId || 1,
+ selected_index: selectedIdx,
+ correct_index: correctIdx,
+ explanation: explanation
+ })
+ })
+ .then(r => r.json())
+ .then(d => {
+ if (fb) {
+ fb.style.display = 'block';
+ fb.style.background = d.is_correct ? '#f0fdf4' : '#fffbeb';
+ fb.style.border = `1px solid ${d.is_correct ? '#bbf7d0' : '#fde68a'}`;
+ fb.style.color = d.is_correct ? '#166534' : '#92400e';
+ fb.innerHTML = `<strong>${d.is_correct ? ' Correct!' : ' Active Review'}</strong> ${escapeHtml(d.message)}<br><span style="margin-top:4px;display:block">${escapeHtml(explanation)}</span>`;
+ }
+ if (d.is_correct) {
+ playChimeSound();
+ triggerVibration([100, 50, 150]);
+ }
+ syncWithServer();
+ });
+ }
+
+ function closeMobileChallenge() {
+ const modal = document.getElementById('mobileChallengeModal');
+ if (modal) modal.style.display = 'none';
+ }
+
+ // ── Instant Tutor Clarify (Mobile) ──
+ function askMobileClarify() {
+ const inp = document.getElementById('mobileClarifyInput');
+ const ans = document.getElementById('mobileClarifyAnswer');
+ const q = inp ? inp.value.trim() : '';
+ if (!q) return;
+
+ if (ans) {
+ ans.style.display = 'block';
+ ans.innerHTML = '<i class="bi bi-stars"></i> Checking study notes...';
+ }
+
+ fetch('/session/clarify', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ question: q, topic: S.topic, session_id: S.sessionId, student_id: S.studentId || 1 })
+ })
+ .then(r => r.json())
+ .then(d => {
+ if (ans) {
+ ans.innerHTML = `<strong>Tutor:</strong> ${escapeHtml(d.answer || 'No answer available.')}`;
+ }
+ if (inp) inp.value = '';
+ })
+ .catch(() => {
+ if (ans) ans.textContent = 'Could not generate answer.';
+ });
+ }
+
+ // ── Quick Alarms ──
+ function scheduleQuickAlarm(mins, label) {
+ let targetDate;
+ if (mins === 'tonight') {
+ targetDate = new Date();
+ targetDate.setHours(20, 0, 0, 0);
+ if (targetDate.getTime() <= Date.now()) {
+ targetDate.setDate(targetDate.getDate() + 1);
+ }
+ } else {
+ targetDate = new Date(Date.now() + mins * 60 * 1000);
+ }
+
+ const isoStr = targetDate.getFullYear() + '-' +
+ String(targetDate.getMonth() + 1).padStart(2, '0') + '-' +
+ String(targetDate.getDate()).padStart(2, '0') + ' ' +
+ String(targetDate.getHours()).padStart(2, '0') + ':' +
+ String(targetDate.getMinutes()).padStart(2, '0') + ':00';
+
+ fetch('/plan/create', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({
+ student_id: parseInt(S.studentId),
+ topic: label,
+ planned_start: isoStr,
+ duration_mins: 25,
+ notes: 'Scheduled via Mobile Quick Alarm'
+ })
+ })
+ .then(r => r.json())
+ .then(data => {
+ if (data.success) {
+ playChimeSound();
+ triggerVibration([200, 100, 200]);
+ const timeStr = targetDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+ const labelDuration = (typeof mins === 'number' ? mins + 'm from now' : 'tonight at 8:00 PM');
+ showToast(` Alarm scheduled for ${timeStr} (${labelDuration})!`);
+ loadTodaySchedule();
+
+ // Native Android exact background alarm scheduling (fires even when app is closed!)
+ const delaySecs = Math.max(1, Math.round((targetDate.getTime() - Date.now()) / 1000));
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.scheduleSystemAlarm === 'function') {
+ window.StudyEdgeBridge.scheduleSystemAlarm(
+ ` Study Reminder: ${label}`,
+ `Time for your study session on ${label}! Tap to enter your focus sprint.`,
+ delaySecs,
+ data.plan_id
+ );
+ console.log(`[Mobile] Registered OS alarm in ${delaySecs}s for plan ${data.plan_id}`);
+ }
+ }
+ });
+ }
+
+ function validateMobileCustomDateTime(input) {
+ if (!input || !input.value) return;
+ const val = input.value;
+ const parts = val.split('T');
+ if (parts.length > 0) {
+ const dateParts = parts[0].split('-');
+ if (dateParts.length === 3) {
+ const year = parseInt(dateParts[0], 10);
+ const currentYear = new Date().getFullYear();
+ if (dateParts[0].length > 4 || year > currentYear + 2 || year < currentYear) {
+ showToast(` Year must be between ${currentYear} and ${currentYear + 2}.`);
+ input.value = '';
+ return;
+ }
+ }
+ }
+ const selected = new Date(val);
+ if (selected < new Date()) {
+ showToast(' Please select a future time.');
+ input.value = '';
+ }
+ }
+
+ function scheduleMobileCustomAlarm() {
+ const topicInput = document.getElementById('mobileCustomTopic');
+ const dtInput = document.getElementById('mobileCustomDateTime');
+ const durInput = document.getElementById('mobileCustomDuration');
+
+ const topic = (topicInput?.value || '').trim() || 'Custom Study Session';
+ const dtVal = dtInput?.value;
+ const duration = parseInt(durInput?.value || '25', 10);
+
+ if (!dtVal) {
+ showToast(' Please select a date and time.');
+ if (dtInput) dtInput.focus();
+ return;
+ }
+
+ const targetDate = new Date(dtVal);
+ const now = new Date();
+ const currentYear = now.getFullYear();
+
+ if (targetDate.getFullYear() > currentYear + 2 || targetDate.getFullYear() < currentYear) {
+ showToast(` Year must be between ${currentYear} and ${currentYear + 2}.`);
+ if (dtInput) dtInput.focus();
+ return;
+ }
+
+ if (targetDate < now) {
+ showToast(' Cannot set reminders in the past. Select a future time.');
+ if (dtInput) dtInput.focus();
+ return;
+ }
+
+ const isoStr = dtVal.replace('T', ' ') + (dtVal.length === 16 ? ':00' : '');
+
+ fetch('/plan/create', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({
+ student_id: parseInt(S.studentId || 1),
+ topic: topic,
+ planned_start: isoStr,
+ duration_mins: duration,
+ notes: 'Scheduled via Mobile Custom Alarm'
+ })
+ })
+ .then(r => r.json().then(data => ({ status: r.status, body: data })))
+ .then(res => {
+ if (res.body.success) {
+ playChimeSound();
+ triggerVibration([200, 100, 200]);
+ const timeStr = targetDate.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' at ' + targetDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+ showToast(` Reminder set for ${timeStr}!`);
+ if (topicInput) topicInput.value = '';
+ if (dtInput) dtInput.value = '';
+ loadTodaySchedule();
+
+ // Native Android exact alarm
+ const delaySecs = Math.max(1, Math.round((targetDate.getTime() - Date.now()) / 1000));
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.scheduleSystemAlarm === 'function') {
+ window.StudyEdgeBridge.scheduleSystemAlarm(
+ ` Study Reminder: ${topic}`,
+ `Starting right now (${duration}m)! Tap to begin your focus session.`,
+ delaySecs,
+ res.body.plan_id
+ );
+ console.log(`[Mobile] Registered OS alarm in ${delaySecs}s for custom plan ${res.body.plan_id}`);
+ }
+ } else {
+ showToast(' ' + (res.body.error || 'Could not schedule reminder.'));
+ }
+ })
+ .catch(() => showToast(' Network error saving reminder.'));
+ }
+
+ let _mobileDismissedReminders = new Set();
+
+ function initMobileReminderMonitor() {
+ checkMobileReminders();
+ setInterval(checkMobileReminders, 25000);
+ setInterval(syncActiveSessionMobile, 4000);
+ setInterval(loadTodaySchedule, 8000);
+ }
+
+ function checkMobileReminders() {
+ if (S.remindersPaused) return;
+ fetch('/plan/reminders?student_id=' + (S.studentId || 1) + '&window=10')
+ .then(r => r.json())
+ .then(d => {
+ if (d.paused) {
+ if (!S.remindersPaused) {
+ S.remindersPaused = true;
+ updateMobileRemindersUI({ paused: true });
+ }
+ return;
+ }
+ if (S.remindersPaused) return;
+ const rems = d.reminders || [];
+ if (!rems.length) return;
+ const due = rems.find(r => r.is_due_now && !_mobileDismissedReminders.has(r.id));
+ if (due) {
+ _mobileDismissedReminders.add(due.id);
+ dispatchMobileAlert(" Study Reminder", `Time for your study session on "${due.topic}"! Tap to start.`);
+ }
+ })
+ .catch(() => {});
+ }
+
+ function loadTodaySchedule() {
+ Promise.all([
+ fetch(`/plan/today?student_id=${S.studentId || 1}`).then(r => r.json()).catch(() => ({ plans: [] })),
+ fetch(`/plan/upcoming?student_id=${S.studentId || 1}&days=7`).then(r => r.json()).catch(() => ({ plans: [] }))
+ ]).then(([todayData, upcomingData]) => {
+ const el = document.getElementById('todayScheduleList');
+ if (!el) return;
+ const todayPlans = todayData.plans || [];
+ const upcomingPlans = (upcomingData.plans || []).filter(u => !todayPlans.some(t => t.id === u.id));
+
+ if (!todayPlans.length && !upcomingPlans.length) {
+ el.innerHTML = `
+ <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.85rem">
+ <i class="bi bi-calendar-check" style="font-size:1.6rem;display:block;margin-bottom:8px"></i>
+ No study sessions scheduled for today.
+ </div>`;
+ return;
+ }
+
+ let html = '';
+ if (todayPlans.length > 0) {
+ html += todayPlans.map(p => {
+ const timeStr = new Date(p.planned_start).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+ const isActive = p.status === 'active' || (S.sessionId && p.topic === S.topic);
+ const isDone = p.status === 'completed';
+ const dur = p.duration_mins || p.planned_duration_mins || 25;
+ return `
+ <div class="plan-card ${isActive ? 'active-now' : ''} ${isDone ? 'done' : ''}">
+ <div>
+ <div class="plan-info-title">${escapeHtml(p.topic)}</div>
+ <div class="plan-info-meta"><i class="bi bi-clock"></i> Today at ${timeStr} • ${dur} mins ${isActive ? '• <strong style="color:var(--warning)">Active Now</strong>' : ''}</div>
+ </div>
+ <div style="display:flex;gap:6px;align-items:center">
+ ${isActive ? `
+ <button class="plan-act-btn" style="background:#059669" onclick="switchTab('focus')"><i class="bi bi-eye-fill"></i> Focus</button>
+ <button class="plan-act-btn" style="background:#fee2e2;color:#dc2626" onclick="endMobileSession()"><i class="bi bi-stop-circle-fill"></i> End</button>
+ ` : isDone ? `
+ <button class="plan-act-btn" style="background:var(--card-bg);border:1px solid #a7f3d0;color:#059669" onclick="startPlanFromMobile('${escapeHtml(p.topic).replace(/'/g, "\'")}', ${p.id})"><i class="bi bi-arrow-repeat"></i> Re-study</button>
+ ` : `
+ <button class="plan-act-btn" onclick="startPlanFromMobile('${escapeHtml(p.topic).replace(/'/g, "\'")}', ${p.id})"><i class="bi bi-play-fill"></i> Start</button>
+ `}
+ </div>
+ </div>
+ `;
+ }).join('');
+ }
+
+ if (upcomingPlans.length > 0) {
+ html += `
+ <div style="font-size:0.76rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin:16px 0 8px 0;display:flex;align-items:center;gap:6px">
+ <i class="bi bi-calendar-week" style="color:var(--primary)"></i> Upcoming Reminders
+ </div>
+ `;
+ html += upcomingPlans.map(p => {
+ const dateObj = new Date(p.planned_start);
+ const dateStr = dateObj.toLocaleDateString([], { month: 'short', day: 'numeric' });
+ const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+ const isActive = p.status === 'active' || (S.sessionId && p.topic === S.topic);
+ const isDone = p.status === 'completed';
+ const dur = p.duration_mins || p.planned_duration_mins || 25;
+ return `
+ <div class="plan-card ${isActive ? 'active-now' : ''} ${isDone ? 'done' : ''}" style="background:var(--card-bg);border:1px solid var(--border)">
+ <div>
+ <div class="plan-info-title">${escapeHtml(p.topic)}</div>
+ <div class="plan-info-meta"><i class="bi bi-calendar3"></i> ${dateStr}, ${timeStr} • ${dur}m ${isActive ? '• <strong style="color:var(--warning)">Active Now</strong>' : ''}</div>
+ </div>
+ <div style="display:flex;gap:6px;align-items:center">
+ ${isActive ? `
+ <button class="plan-act-btn" style="background:#059669" onclick="switchTab('focus')"><i class="bi bi-eye-fill"></i> Focus</button>
+ <button class="plan-act-btn" style="background:#fee2e2;color:#dc2626" onclick="endMobileSession()"><i class="bi bi-stop-circle-fill"></i> End</button>
+ ` : isDone ? `
+ <button class="plan-act-btn" style="background:var(--card-bg);border:1px solid #a7f3d0;color:#059669" onclick="startPlanFromMobile('${escapeHtml(p.topic).replace(/'/g, "\'")}', ${p.id})"><i class="bi bi-arrow-repeat"></i> Re-study</button>
+ ` : `
+ <button class="plan-act-btn" onclick="startPlanFromMobile('${escapeHtml(p.topic).replace(/'/g, "\'")}', ${p.id})"><i class="bi bi-play-fill"></i> Start</button>
+ `}
+ </div>
+ </div>
+ `;
+ }).join('');
+ }
+
+ el.innerHTML = html;
+ });
+ }
+
+ function startPlanFromMobile(topic, planId = null) {
+ if (_mobileCurriculumAbortController) {
+ try { _mobileCurriculumAbortController.abort(); } catch (e) {}
+ }
+ _mobileCurriculumAbortController = new AbortController();
+ const curSignal = _mobileCurriculumAbortController.signal;
+
+ S.topic = topic;
+ localStorage.setItem('session_topic', topic);
+ const tEl = document.getElementById('activeTopicText');
+ if (tEl) tEl.textContent = topic;
+ switchTab('focus');
+ fetch('/session/start', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ student_id: parseInt(S.studentId), topic: topic, plan_id: planId }),
+ signal: curSignal
+ })
+ .then(r => r.json())
+ .then(d => {
+ if (!d.session_id || curSignal.aborted) return;
+ S.sessionId = d.session_id;
+ localStorage.setItem('session_id', S.sessionId);
+ loadMobileMilestones(S.sessionId, topic);
+ loadTodaySchedule();
+ 
+ // Trigger curriculum generation in background so web app AI Output pane renders it!
+ fetch('/session/curriculum/generate', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ student_id: parseInt(S.studentId), topic: topic, session_id: d.session_id, plan_id: planId }),
+ signal: curSignal
+ }).catch(() => {});
+
+ resetTimer();
+ runTimer();
+ })
+ .catch(err => {
+ if (err.name !== 'AbortError') console.error('Error starting mobile session:', err);
+ });
+ }
+
+ // ── Sounds & Haptics ──
+ function playChimeSound() {
+ if (S.remindersPaused) {
+ console.log('[Mobile Chime] Suppressed because reminders are paused (DND mode).');
+ return;
+ }
+ try {
+ const AudioContext = window.AudioContext || window.webkitAudioContext;
+ if (!AudioContext) return;
+ const ctx = new AudioContext();
+ const now = ctx.currentTime;
+
+ const osc1 = ctx.createOscillator();
+ const g1 = ctx.createGain();
+ osc1.frequency.setValueAtTime(523.25, now);
+ g1.gain.setValueAtTime(0.3, now);
+ g1.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+ osc1.connect(g1);
+ g1.connect(ctx.destination);
+ osc1.start(now);
+ osc1.stop(now + 0.5);
+
+ const osc2 = ctx.createOscillator();
+ const g2 = ctx.createGain();
+ osc2.frequency.setValueAtTime(659.25, now + 0.15);
+ g2.gain.setValueAtTime(0.35, now + 0.15);
+ g2.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+ osc2.connect(g2);
+ g2.connect(ctx.destination);
+ osc2.start(now + 0.15);
+ osc2.stop(now + 0.7);
+ } catch (e) {}
+ }
+
+ function triggerVibration(pattern = [300, 150, 300, 150, 300]) {
+ if (S.remindersPaused) return;
+ if ('vibrate' in navigator) navigator.vibrate(pattern);
+ }
+
+ // ── Mobile Pause Reminders / Do Not Disturb (DND) ──
+ function openMobilePauseModal() {
+ const m = document.getElementById('mobilePauseModal');
+ if (m) m.style.display = 'flex';
+ fetchMobileRemindersStatus();
+ }
+
+ function closeMobilePauseModal() {
+ const m = document.getElementById('mobilePauseModal');
+ if (m) m.style.display = 'none';
+ }
+
+ function fetchMobileRemindersStatus() {
+ const sid = S.studentId || localStorage.getItem('student_id') || '1';
+ fetch(`/reminders/status?student_id=${sid}`)
+ .then(r => r.json())
+ .then(data => {
+ if (data.success) {
+ updateMobileRemindersUI(data);
+ if (data.paused) {
+ const remMins = data.remaining_minutes || 60;
+ const untilMillis = remMins === -1 ? -1 : (Date.now() + remMins * 60 * 1000);
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.setDndActive === 'function') {
+ window.StudyEdgeBridge.setDndActive(true, untilMillis);
+ }
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.cancelAllAlarms === 'function') {
+ window.StudyEdgeBridge.cancelAllAlarms();
+ }
+ if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+ navigator.serviceWorker.controller.postMessage({ type: 'CANCEL_ALL_LOCAL_ALARMS' });
+ }
+ } else {
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.setDndActive === 'function') {
+ window.StudyEdgeBridge.setDndActive(false, 0);
+ }
+ }
+ }
+ })
+ .catch(() => {});
+ }
+
+ function pauseMobileReminders(durationMins) {
+ const sid = S.studentId || localStorage.getItem('student_id') || '1';
+ fetch('/reminders/pause', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ student_id: parseInt(sid), duration_mins: durationMins })
+ })
+ .then(r => r.json())
+ .then(data => {
+ if (data.success) {
+ updateMobileRemindersUI(data);
+ closeMobilePauseModal();
+ // Silences Android OS AlarmManager exact alarms & hardware ringtones!
+ const untilMillis = durationMins === -1 ? -1 : (Date.now() + durationMins * 60 * 1000);
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.setDndActive === 'function') {
+ window.StudyEdgeBridge.setDndActive(true, untilMillis);
+ }
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.cancelAllAlarms === 'function') {
+ window.StudyEdgeBridge.cancelAllAlarms();
+ }
+ if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+ navigator.serviceWorker.controller.postMessage({ type: 'CANCEL_ALL_LOCAL_ALARMS' });
+ }
+ const durText = durationMins === -1 ? 'indefinitely' : (durationMins >= 60 ? `${durationMins / 60}h` : `${durationMins}m`);
+ showToast(` Reminders & alarms paused (${durText}).`);
+ }
+ })
+ .catch(err => {
+ console.error('Error pausing reminders on mobile:', err);
+ showToast(' Could not pause reminders.');
+ });
+ }
+
+ function resumeMobileReminders() {
+ const sid = S.studentId || localStorage.getItem('student_id') || '1';
+ fetch('/reminders/resume', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ student_id: parseInt(sid) })
+ })
+ .then(r => r.json())
+ .then(data => {
+ if (data.success) {
+ updateMobileRemindersUI(data);
+ closeMobilePauseModal();
+ // Resume Android OS AlarmManager alarms
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.setDndActive === 'function') {
+ window.StudyEdgeBridge.setDndActive(false, 0);
+ }
+ showToast(' Reminders & alarms resumed!');
+ }
+ })
+ .catch(err => {
+ console.error('Error resuming reminders on mobile:', err);
+ showToast(' Could not resume reminders.');
+ });
+ }
+
+ function updateMobileRemindersUI(status) {
+ S.remindersPaused = !!status.paused;
+ const isPaused = S.remindersPaused;
+ const remMins = status.remaining_minutes;
+
+ // Persist locally for instant mobile reload retention
+ if (isPaused) {
+ localStorage.setItem('studyedge_reminders_paused', 'true');
+ if (remMins !== undefined) localStorage.setItem('studyedge_reminders_mins', String(remMins));
+ } else {
+ localStorage.setItem('studyedge_reminders_paused', 'false');
+ localStorage.removeItem('studyedge_reminders_mins');
+ }
+
+ // 1. Header icon and badge dot
+ const headerIcon = document.getElementById('mobileReminderHeaderIcon');
+ const badgeDot = document.getElementById('mobileReminderDndDot');
+ if (headerIcon) {
+ headerIcon.className = isPaused ? 'bi bi-bell-slash-fill' : 'bi bi-bell-fill';
+ headerIcon.style.color = isPaused ? '#fecaca' : '#ffffff';
+ }
+ if (badgeDot) {
+ badgeDot.style.display = isPaused ? 'block' : 'none';
+ }
+
+ // 2. Tab 1 Focus Banner
+ const dndBanner = document.getElementById('mobileDndBanner');
+ const dndBannerText = document.getElementById('mobileDndBannerText');
+ if (dndBanner) {
+ dndBanner.style.display = isPaused ? 'inline-flex' : 'none';
+ if (dndBannerText && isPaused) {
+ dndBannerText.textContent = remMins === -1 ? 'Reminders Paused (Busy Mode)' : `Reminders Paused (${remMins}m left)`;
+ }
+ }
+
+ // 3. Tab 4 Settings Card
+ const card = document.getElementById('mobileDndCard');
+ const icon = document.getElementById('mobileDndIcon');
+ const title = document.getElementById('mobileDndTitle');
+ const desc = document.getElementById('mobileDndDesc');
+ const btn = document.getElementById('mobileDndBtn');
+ if (card && icon && title && desc && btn) {
+ if (isPaused) {
+ card.style.borderColor = '#fecaca';
+ card.style.background = '#fef2f2';
+ icon.className = 'bi bi-bell-slash-fill';
+ icon.style.color = '#ef4444';
+ title.textContent = remMins === -1 ? 'Reminders: Paused' : `Reminders: Paused (${remMins}m left)`;
+ title.style.color = '#991b1b';
+ desc.textContent = 'Alarms and study reminders are currently silenced.';
+ desc.style.color = '#b91c1c';
+ btn.textContent = 'Resume';
+ btn.style.background = 'var(--success)';
+ btn.onclick = resumeMobileReminders;
+ } else {
+ card.style.borderColor = 'var(--border)';
+ card.style.background = 'var(--card-bg)';
+ icon.className = 'bi bi-bell-fill';
+ icon.style.color = 'var(--success)';
+ title.textContent = 'Reminders: Active';
+ title.style.color = 'var(--text)';
+ desc.textContent = 'Mute alarms, lock-screen alerts & audio chimes when busy.';
+ desc.style.color = 'var(--text-muted)';
+ btn.textContent = 'Pause';
+ btn.style.background = 'var(--grad)';
+ btn.onclick = openMobilePauseModal;
+ }
+ }
+
+ // 4. Modal Active Banner
+ const modalBanner = document.getElementById('mPauseActiveBanner');
+ const modalRemText = document.getElementById('mPauseRemainingText');
+ if (modalBanner) {
+ modalBanner.style.display = isPaused ? 'block' : 'none';
+ if (modalRemText && isPaused) {
+ modalRemText.textContent = remMins === -1
+ ? 'Reminders are paused indefinitely until you resume.'
+ : `Reminders are paused. Will automatically resume in ~${remMins} minutes.`;
+ }
+ }
+ }
+
+ function urlB64ToUint8Array(base64String) {
+ const padding = '='.repeat((4 - base64String.length % 4) % 4);
+ const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+ const rawData = window.atob(base64);
+ const outputArray = new Uint8Array(rawData.length);
+ for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+ return outputArray;
+ }
+
+ // ── Push Alerts & Mobile Notification Enablement (No-Error Graceful Flow) ──
+ async function enablePush() {
+ // 1. Native Android APK Bridge Check
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.postNotification === 'function') {
+ document.getElementById('enablePushBtn').textContent = 'Active ';
+ document.getElementById('enablePushBtn').style.background = '#059669';
+ document.getElementById('pushStatusDesc').textContent = 'Native lock-screen alarms and vibration active on this phone';
+ showToast(' Native Android study alarms activated!');
+ window.StudyEdgeBridge.postNotification(' StudyEdge Alarms Active', 'Your phone will ring and vibrate for study reminders and timers.');
+ playChimeSound();
+ triggerVibration([200, 100, 200]);
+ return;
+ }
+
+ // 2. In-Browser Notification Check
+ if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+ // Fallback gracefully without error: activate audio chimes & vibration
+ document.getElementById('enablePushBtn').textContent = 'Active ';
+ document.getElementById('enablePushBtn').style.background = '#059669';
+ document.getElementById('pushStatusDesc').textContent = 'In-App audio chimes & haptic vibration active on this device';
+ showToast(' Audio chimes & vibration alarms active!');
+ playChimeSound();
+ triggerVibration([200, 100, 200]);
+ return;
+ }
+
+ try {
+ const perm = await Notification.requestPermission();
+ if (perm === 'granted') {
+ try {
+ const reg = await navigator.serviceWorker.ready;
+ const keyResp = await fetch('/vapid-public-key');
+ const keyData = await keyResp.json();
+ const appServerKey = urlB64ToUint8Array(keyData.public_key);
+
+ const sub = await reg.pushManager.subscribe({
+ userVisibleOnly: true,
+ applicationServerKey: appServerKey
+ });
+
+ await fetch('/subscribe', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ student_id: parseInt(S.studentId), subscription: sub.toJSON() })
+ });
+ } catch (swErr) {
+ console.log('[SW Push note]', swErr);
+ }
+ document.getElementById('enablePushBtn').textContent = 'Active ';
+ document.getElementById('enablePushBtn').style.background = '#059669';
+ document.getElementById('pushStatusDesc').textContent = 'Lock-screen alerts enabled on this device';
+ showToast(' Notifications activated on this phone!');
+ playChimeSound();
+ triggerVibration();
+ } else {
+ // Fallback to audio + vibration
+ document.getElementById('enablePushBtn').textContent = 'Active ';
+ document.getElementById('enablePushBtn').style.background = '#059669';
+ document.getElementById('pushStatusDesc').textContent = 'Audio & vibration alarms active';
+ showToast(' Audio & vibration alarms active!');
+ playChimeSound();
+ triggerVibration();
+ }
+ } catch (e) {
+ document.getElementById('enablePushBtn').textContent = 'Active ';
+ document.getElementById('enablePushBtn').style.background = '#059669';
+ document.getElementById('pushStatusDesc').textContent = 'Audio & vibration alarms active';
+ showToast(' Audio & vibration alarms active!');
+ playChimeSound();
+ triggerVibration();
+ }
+ }
+
+ function testPushAlert() {
+ if (window.StudyEdgeBridge && typeof window.StudyEdgeBridge.postNotification === 'function') {
+ window.StudyEdgeBridge.postNotification(' StudyEdge Alert Test', 'Success! Native phone alarms and vibration are working.');
+ playChimeSound();
+ triggerVibration([200, 100, 300]);
+ showToast(' Native alert sent to phone notification tray!');
+ return;
+ }
+
+ fetch('/test-alert', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({
+ student_id: parseInt(S.studentId),
+ title: ' StudyEdge Mobile Alert Test',
+ body: 'Mobile alerting works! Your phone will alert you for study sessions.'
+ })
+ })
+ .then(r => r.json())
+ .then(d => {
+ playChimeSound();
+ triggerVibration([200, 100, 300]);
+ showToast(d.success ? ' Alert dispatched to your phone!' : ' Audio & vibration alarm test successful!');
+ })
+ .catch(() => {
+ playChimeSound();
+ triggerVibration([200, 100, 300]);
+ showToast(' Audio & vibration alarm test successful!');
+ });
+ }
+
+ // ── Server Sync ──
+ function syncWithServer() {
+ if (S.sessionId) {
+ fetch(`/session/live-stats?session_id=${S.sessionId}&student_id=${S.studentId}`)
+ .then(r => r.json())
+ .then(d => {
+ if (d.elapsed_mins) document.getElementById('statElapsed').textContent = `${d.elapsed_mins}m`;
+ if (d.pomodoro_count) document.getElementById('statRounds').textContent = d.pomodoro_count;
+ if (d.focus_score) document.getElementById('statScore').textContent = `${d.focus_score}%`;
+ if (d.topic) {
+ S.topic = d.topic;
+ document.getElementById('activeTopicText').textContent = d.topic;
+ }
+ })
+ .catch(() => {});
+ }
+ fetch(`/stats/streak?student_id=${S.studentId}`)
+ .then(r => r.json())
+ .then(d => {
+ document.getElementById('streakCount').textContent = d.streak || 0;
+ })
+ .catch(() => {});
+ }
+
+ function loadProgressStats() {
+ fetch(`/reports/overall?student_id=${S.studentId}`)
+ .then(r => r.json())
+ .then(d => {
+ if (d.knowledgePoints) {
+ document.getElementById('tierName').textContent = (d.knowledgePoints.tier || 'Expert') + ' Tier';
+ document.getElementById('pointsVal').textContent = (d.knowledgePoints.points || 4930).toLocaleString();
+ }
+ })
+ .catch(() => {});
+ }
+
+ function showToast(msg) {
+ const t = document.getElementById('toastMsg');
+ if (!t) return;
+ t.textContent = msg;
+ t.classList.add('show');
+ setTimeout(() => t.classList.remove('show'), 2800);
+ }
+
+ function escapeHtml(str) {
+ if (!str) return '';
+ return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+ }
+
+ // ── Fullscreen App Mode: Hides Chrome address bar & controls completely ──
+ function toggleFullscreenApp() {
+ if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+ const el = document.documentElement;
+ const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+ if (req) {
+ req.call(el).then(() => {
+ showToast(' Fullscreen App Mode Active (Address Bar Hidden)');
+ const icon = document.querySelector('#fullscreenBtn i');
+ if (icon) icon.className = 'bi bi-fullscreen-exit';
+ }).catch(() => {
+ showToast('Tap to enter full screen');
+ });
+ }
+ } else {
+ const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
+ if (exit) {
+ exit.call(document);
+ const icon = document.querySelector('#fullscreenBtn i');
+ if (icon) icon.className = 'bi bi-arrows-fullscreen';
+ }
+ }
+ }
+
+ // ── Startup & Multi-Device Sync on Reopen / Unhide ──
+ window.addEventListener('DOMContentLoaded', () => {
+ document.getElementById('serverHost').textContent = window.location.host;
+ document.getElementById('settingStudentName').textContent = S.studentName;
+ syncActiveSessionMobile();
+ // Immediately restore cached pause state on startup
+ const savedPaused = localStorage.getItem('studyedge_reminders_paused') === 'true';
+ const savedMins = parseInt(localStorage.getItem('studyedge_reminders_mins') || '-1');
+ if (savedPaused) {
+ updateMobileRemindersUI({ paused: true, remaining_minutes: savedMins });
+ }
+
+ syncWithServer();
+ loadTodaySchedule();
+ updateRoundDots(S.round);
+ initMobileReminderMonitor();
+ fetchMobileRemindersStatus();
+ updateMobileSessionControls(!!S.sessionId);
+
+ // Initialize custom date/time min/max limits
+ const mDt = document.getElementById('mobileCustomDateTime');
+ if (mDt) {
+ const now = new Date();
+ const pad = n => String(n).padStart(2, '0');
+ const minStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+ const maxStr = `${now.getFullYear() + 2}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+ mDt.min = minStr;
+ mDt.max = maxStr;
+ }
+
+ // Check if native Android bridge is available
+ if (window.StudyEdgeBridge) {
+ const pBtn = document.getElementById('enablePushBtn');
+ if (pBtn) {
+ pBtn.textContent = 'Active ';
+ pBtn.style.background = '#059669';
+ }
+ const pDesc = document.getElementById('pushStatusDesc');
+ if (pDesc) {
+ pDesc.textContent = 'Native Android study alarms and vibration enabled';
+ }
+ }
+ });
+
+ // When student unlocks phone or switches back to app tab: NEVER RESET!
+ document.addEventListener('visibilitychange', () => {
+ if (document.visibilityState === 'visible') {
+ console.log('[Mobile] App became visible - syncing session state...');
+ syncActiveSessionMobile();
+ syncWithServer();
+ fetchMobileRemindersStatus();
+ loadTodaySchedule();
+ }
+ });
+ </script>
+</body>
+</html>
