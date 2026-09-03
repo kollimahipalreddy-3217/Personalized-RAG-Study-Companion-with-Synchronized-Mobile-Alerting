@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8"/>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+ <title>StudyEdge AI — Dashboard</title>
+ <link rel="stylesheet" href="/static/fonts.css"/>
+ <link rel="stylesheet" href="/static/bootstrap-icons.css"/>
+ <link rel="stylesheet" href="/static/style.css?t={{ range(100000, 999999) | random }}"/>
+ <link rel="manifest" href="/static/manifest.json"/>
+ <script src="/static/chart.min.js"></script>
+ <meta name="theme-color" content="#4361ee"/>
+</head>
+<body>
+
+<!-- ── TOP NAV ── -->
+<nav class="top-nav">
+ <div class="app-logo">
+ <i class="bi bi-cpu-fill nav-logo-icon"></i>
+ StudyEdge AI
+ </div>
+ <div class="nav-tabs">
+ <button onclick="setView('home')" id="btn-home" class="nav-tab active">
+ <i class="bi bi-grid-fill"></i> Dashboard
+ </button>
+ <button onclick="setView('planner')" id="btn-planner" class="nav-tab">
+ <i class="bi bi-calendar3"></i> Planner
+ </button>
+ <button onclick="setView('test')" id="btn-test" class="nav-tab">
+ <i class="bi bi-journal-check"></i> Test
+ </button>
+ <button onclick="setView('reports')" id="btn-reports" class="nav-tab">
+ <i class="bi bi-bar-chart-fill"></i> Reports
+ </button>
+ <button onclick="setView('chat')" id="btn-chat" class="nav-tab">
+ <i class="bi bi-chat-dots"></i> AI Chat
+ </button>
+ </div>
+ <div class="nav-right">
+ <div id="offlineIndicator" style="display:none;align-items:center;gap:6px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:5px 12px;border-radius:20px;font-size:0.75rem;font-weight:700" title="Offline Mode: Running on local Ollama models and offline database">
+ <i class="bi bi-wifi-off"></i> Offline Mode (Local AI)
+ </div>
+ <button class="nav-action-btn reminder-toggle-btn" id="navReminderToggleBtn" onclick="openPauseRemindersModal()" title="Do Not Disturb / Pause Reminders & Alarms" style="display:inline-flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #cbd5e1;color:#475569;padding:6px 12px;border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer">
+ <i class="bi bi-bell-fill" id="navReminderIcon" style="color:#059669"></i>
+ <span id="navReminderText">Reminders Active</span>
+ </button>
+ <span class="student-pill"><i class="bi bi-person-circle" style="color:var(--primary);margin-right:4px"></i><span id="navStudentName">Student</span></span>
+ <button class="icon-btn" onclick="toggleNotes()" title="Notes">
+ <i class="bi bi-journal-text"></i>
+ </button>
+ </div>
+</nav>
+
+<!-- ── MAIN GRID ── -->
+<div class="main-grid">
+
+ <!-- ═══════════ LEFT PANEL ═══════════ -->
+ <div class="panel panel-left">
+
+ <!-- Pomodoro Timer -->
+ <div class="section-label"><i class="bi bi-stopwatch"></i> Focus Timer</div>
+ <div class="timer-card">
+ <div class="timer-mode-label" id="timerLabel">FOCUS SESSION</div>
+ <!-- Round indicator dots -->
+ <div class="pomodoro-rounds" id="pomodoroRounds">
+ <span class="round-dot" id="rd1"></span>
+ <span class="round-dot" id="rd2"></span>
+ <span class="round-dot" id="rd3"></span>
+ <span class="round-dot" id="rd4"></span>
+ </div>
+ <div class="timer-clock" id="timerDisplay">25:00</div>
+ <div class="timer-track"><div class="timer-fill" id="timerProgress"></div></div>
+ <div class="pace-badge" id="paceBadge" style="display:none">Normal</div>
+ <div class="timer-actions">
+ <button class="tbtn tbtn-primary" id="startBtn" onclick="startTimer()">
+ <i class="bi bi-play-fill"></i> Start
+ </button>
+ <button class="tbtn tbtn-danger" id="pauseBtn" onclick="stopTimer()" style="display:none">
+ <i class="bi bi-pause-fill"></i> Pause
+ </button>
+ <button class="tbtn tbtn-soft" id="breakBtn" onclick="startBreak()">
+ <i class="bi bi-cup-hot"></i> Break
+ </button>
+ <button class="tbtn tbtn-warning" id="cancelBreakBtn" onclick="cancelBreak()" style="display:none;background:#fef3c7;color:#b45309;border-color:#fde68a" title="Cancel break and return to study">
+ <i class="bi bi-x-circle-fill"></i> End Break
+ </button>
+ <button class="tbtn tbtn-long-break" id="longBreakBtn" onclick="startLongBreak()" style="display:none">
+ <i class="bi bi-cup-hot-fill"></i> Long
+ </button>
+ <button class="tbtn tbtn-soft" id="endSprintBtn" onclick="endSprint()" style="display:none;background:#f8fafc;color:#475569;border-color:#cbd5e1" title="End active sprint countdown (leaves session open)">
+ <i class="bi bi-stop-fill"></i> End Sprint
+ </button>
+ <button class="tbtn tbtn-danger" id="timerEndBtn" onclick="endSession()" style="display:none;background:#fef2f2;color:#dc2626;border-color:#fca5a5" title="End complete study session">
+ <i class="bi bi-stop-circle"></i> End Session
+ </button>
+ </div>
+ </div>
+ <!-- Live Monitor strip -->
+ <div class="monitor-strip" id="monitorStrip" style="display:none">
+ <div class="monitor-item"><i class="bi bi-clock"></i> <span id="monElapsed">0m</span></div>
+ <div class="monitor-item"><i class="bi bi-speedometer"></i> <span id="monPace">—</span></div>
+ <div class="monitor-item"><i class="bi bi-bullseye"></i> <span id="monFocus">—</span></div>
+ </div>
+
+ <!-- Quick Stats -->
+ <div class="stats-strip" style="grid-template-columns: 1fr;">
+ <div class="stat-box" style="justify-content: flex-start; gap: 12px; padding: 10px 14px;">
+ <i class="bi bi-circle-fill stat-icon red" style="font-size: 1.15rem;"></i>
+ <div>
+ <div class="stat-num" id="pomodoroCount" style="font-size: 1.15rem;">0</div>
+ <div class="stat-lbl" id="pomodoroStatLbl">Pomodoros</div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Session -->
+ <div class="section-label" style="margin-top:8px"><i class="bi bi-bookmark-fill"></i> Session</div>
+ <div id="sessionStartPanel">
+ <!-- Mode Toggle: Web / Open Topic vs From Uploaded Note/PDF -->
+ <div style="display:flex;gap:4px;margin-bottom:8px">
+ <button type="button" class="btn-xs active" id="btnSessionModeTopic" onclick="setSessionInputMode('topic')" style="flex:1;padding:6px 8px;font-size:0.75rem;border-radius:6px;cursor:pointer;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;font-weight:700" title="Study any topic in the world using live web research and AI tutoring">
+ <i class="bi bi-globe2"></i> Web &amp; AI
+ </button>
+ <button type="button" class="btn-xs" id="btnSessionModeDoc" onclick="setSessionInputMode('doc')" style="flex:1;padding:6px 8px;font-size:0.75rem;border-radius:6px;cursor:pointer;background:#f8fafc;color:#64748b;border:1px solid #e2e8f0;font-weight:600" title="Study strictly from an uploaded note or PDF in your library">
+ <i class="bi bi-file-earmark-pdf"></i> Note / PDF
+ </button>
+ </div>
+
+ <!-- Document Selector (shown when 'Note / PDF' chosen) -->
+ <div id="sessionDocSelectWrap" style="display:none;margin-bottom:8px">
+ <select id="sessionDocSelect" class="text-field" onchange="onSessionDocSelectChange(this)" style="font-size:0.8rem;padding:7px 10px;width:100%;border-radius:8px">
+ <option value="">-- Choose a Note or PDF Document --</option>
+ </select>
+ </div>
+
+ <input type="text" id="topicInput" class="text-field" placeholder="Topic to study (e.g. English, World History, Math)..."/>
+ <button class="btn-primary w100" style="margin-top:6px" onclick="startSession()">
+ <i class="bi bi-play-circle"></i> Begin Session
+ </button>
+ </div>
+ <div id="activeSessionInfo" style="display:none">
+ <div class="session-badge">
+ <i class="bi bi-bookmark-check-fill"></i>
+ <span id="activeTopicName">—</span>
+ </div>
+
+ <!-- Interactive Sprint Milestones Card -->
+ <div class="milestones-card" id="sessionMilestonesCard">
+ <div class="milestones-header">
+ <span><i class="bi bi-bullseye"></i> Sprint Milestones</span>
+ <span style="font-size:0.68rem;cursor:pointer;color:var(--primary)" onclick="fetchInteractiveMilestones(S.sessionId, document.getElementById('activeTopicName').textContent)">
+ <i class="bi bi-arrow-repeat"></i> Regenerate
+ </span>
+ </div>
+ <div id="sessionMilestonesList">
+ <div style="font-size:0.75rem;color:var(--muted);text-align:center;padding:6px">Synthesizing study milestones...</div>
+ </div>
+ </div>
+
+ <!-- Quick AI Recall Challenge Button -->
+ <button class="btn-challenge-trigger" onclick="triggerQuickChallenge()">
+ <i class="bi bi-lightning-charge-fill"></i> Quick Recall Challenge (+30 KP)
+ </button>
+
+ <!-- Quick Clarify Tutor -->
+ <div style="margin-top:10px">
+ <div style="font-size:0.72rem;font-weight:700;color:var(--muted);margin-bottom:4px">
+ <i class="bi bi-chat-quote"></i> Instant Session Tutor
+ </div>
+ <div style="display:flex;gap:4px">
+ <input type="text" id="sessionClarifyInput" class="text-field" placeholder="Ask question about this topic..." style="font-size:0.76rem;padding:6px 8px" onkeydown="if(event.key==='Enter') askSessionClarify()"/>
+ <button class="btn-primary" onclick="askSessionClarify()" style="padding:6px 10px;font-size:0.8rem">
+ <i class="bi bi-send-fill"></i>
+ </button>
+ </div>
+ <div id="sessionClarifyAnswer" style="display:none;font-size:0.75rem;padding:8px;background:white;border:1px solid #cbd5e1;border-radius:6px;margin-top:6px;line-height:1.4"></div>
+ </div>
+
+ <button class="btn-outline w100" style="margin-top:10px" onclick="endSession()">
+ <i class="bi bi-stop-circle"></i> End Session
+ </button>
+ </div>
+
+ <!-- Sources -->
+ <div class="section-label" style="margin-top:8px">
+ <span><i class="bi bi-file-earmark-pdf-fill"></i> Sources (<span id="sourcesCount">0</span>)</span>
+ <label for="pdfFileInput" class="add-doc-btn" title="Upload note or textbook PDF (up to 100MB)"><i class="bi bi-plus"></i> Add PDF</label>
+ <input type="file" id="pdfFileInput" accept=".pdf" style="display:none" onchange="uploadPDF(event)"/>
+ </div>
+ <div id="uploadMsg" class="upload-msg" style="display:none"></div>
+
+ <!-- Collapsible Dropdown for Uploaded Documents -->
+ <div class="sources-dropdown-wrapper" id="sourcesDropdownWrapper">
+ <div class="sources-dropdown-trigger" id="sourcesDropdownTrigger" onclick="toggleSourcesDropdown()">
+ <div class="sources-trigger-left">
+ <i class="bi bi-folder2-open sources-folder-icon"></i>
+ <span class="sources-trigger-label" id="sourcesSelectedLabel">Select Note / Document</span>
+ </div>
+ <div class="sources-trigger-right">
+ <span class="sources-badge" id="sourcesBadge">0</span>
+ <i class="bi bi-chevron-down sources-chevron" id="sourcesChevron"></i>
+ </div>
+ </div>
+ <div class="sources-dropdown-menu" id="sourcesDropdownMenu" style="display:none">
+ <div class="sources-search-box">
+ <i class="bi bi-search sources-search-icon"></i>
+ <input type="text" id="sourcesSearchInput" placeholder="Search notes..." oninput="filterSourcesList(this.value)" />
+ </div>
+ <div id="documentsList" class="doc-list">
+ <div class="empty-msg"><i class="bi bi-cloud-upload"></i><br/>No PDFs uploaded yet</div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Daily Quote -->
+ <div class="quote-card" id="dailyQuote" style="display:none;margin-top:auto">
+ <i class="bi bi-quote quote-icon"></i>
+ <p class="quote-body" id="quoteText"></p>
+ <p class="quote-footer">Quote of the Day</p>
+ </div>
+ </div>
+
+ <!-- ═══════════ CENTRE PANEL ═══════════ -->
+ <div class="panel panel-centre">
+
+ <!-- ── HOME / DASHBOARD VIEW ── -->
+ <div id="view-home" class="view">
+ <div class="home-header">
+ <div>
+ <h1 class="home-title">Good Evening, <span id="homeStudentName">—</span> </h1>
+ <p class="home-sub">Here is your study progress overview</p>
+ </div>
+ <div class="tier-badge-large" id="tierBadgeLarge">
+ <i class="bi bi-award-fill"></i> Beginner
+ </div>
+ </div>
+
+ 
+ <!-- Home Controls & Studio Adjuster Toolbar -->
+ <div class="home-toolbar">
+ <button class="btn-toolbar-toggle" id="toggleQuickActionsBtn" onclick="toggleQuickActions()" title="Collapse / Expand Quick Action Cards">
+ <i class="bi bi-grid-fill" id="toggleQuickActionsIcon"></i>
+ <span id="toggleQuickActionsText">Collapse Quick Actions</span>
+ </button>
+ <div class="studio-size-presets">
+ <span class="preset-label">Studio View:</span>
+ <button class="btn-size-preset active" id="btnPresetNormal" onclick="setStudioPreset('normal')" title="Standard Balanced View">Balanced</button>
+ <button class="btn-size-preset" id="btnPresetExpanded" onclick="setStudioPreset('expanded')" title="Expanded Study Studio (75% Height)">Expanded</button>
+ <button class="btn-size-preset" id="btnPresetFocus" onclick="setStudioPreset('focus')" title="Full Focus Mode (100% Studio Height)">Focus Max</button>
+ </div>
+ </div>
+
+ <!-- Quick-action cards -->
+ <div class="action-cards" id="quickActionCards">
+ <div class="action-card accent-blue" onclick="setView('test')">
+ <i class="bi bi-journal-check action-icon"></i>
+ <div class="action-title">Generate Test</div>
+ <div class="action-desc">Auto-create 16 MCQ questions from your notes</div>
+ </div>
+ <div class="action-card accent-purple" onclick="generateSummary()">
+ <i class="bi bi-card-list action-icon"></i>
+ <div class="action-title">Summarize Topic</div>
+ <div class="action-desc">Get a concise AI summary of your current topic</div>
+ </div>
+ <div class="action-card accent-green" onclick="generateStudyQs()">
+ <i class="bi bi-lightbulb-fill action-icon"></i>
+ <div class="action-title">Study Questions</div>
+ <div class="action-desc">Generate 5 practice questions from your notes</div>
+ </div>
+ <div class="action-card accent-orange" onclick="setView('reports')">
+ <i class="bi bi-bar-chart-line-fill action-icon"></i>
+ <div class="action-title">View Reports</div>
+ <div class="action-desc">Track your tier, weak areas and AI diagnostics</div>
+ </div>
+ </div>
+
+ <!-- Draggable Splitter Handle between Action Cards and Studio -->
+ <div class="studio-splitter" id="studioSplitter" title="Drag up or down to adjust AI Output height">
+ <div class="studio-splitter-handle"></div>
+ </div>
+
+ <!-- Studio output area -->
+ <div class="studio-section" id="studioSection">
+ <div class="studio-label">
+ <div style="display:flex;align-items:center;gap:6px">
+ <i class="bi bi-terminal"></i> <span>AI Output Studio</span>
+ </div>
+ <div class="studio-actions-right">
+ <button class="btn-studio-action" id="btnExamFromSession" onclick="generateExamFromCurrentSession()" title="Create Full 16-MCQ Exam from this Session" style="display:none;background:#eff6ff;color:#2563eb;border-color:#bfdbfe">
+ <i class="bi bi-patch-question-fill"></i> Full Exam Mode
+ </button>
+ <button class="btn-studio-action" id="btnSavedSessions" onclick="openSavedSessionsModal()" title="View and load saved study sessions">
+ <i class="bi bi-clock-history"></i> Saved Sessions
+ </button>
+ <button class="btn-studio-action" id="btnFullscreenStudio" onclick="toggleStudioFullscreen()" title="Maximize / Restore Studio">
+ <i class="bi bi-arrows-fullscreen" id="iconFullscreenStudio"></i>
+ <span id="textFullscreenStudio">Maximize</span>
+ </button>
+ </div>
+ </div>
+ <div class="studio-output" id="studioOutput">
+ <span class="empty-msg">Click an action above — output will appear here.</span>
+ </div>
+ <div id="studioLoading" style="display:none" class="studio-loading">
+ <div class="spinner"></div> <span id="studioLoadingText">AI is working...</span>
+ </div>
+ </div>
+ </div>
+
+ <!-- ── TEST VIEW ── -->
+ <div id="view-test" class="view" style="display:none">
+ <div class="view-header">
+ <h2><i class="bi bi-journal-check"></i> MCQ Test Generator &amp; Evaluation</h2>
+ <p>Equal cognitive category distribution (Memory, Logic, Critical Thinking, Creative Application) with instant diagnostic analysis.</p>
+ </div>
+ <div class="view-body">
+ <!-- Paused Test Banner / Card -->
+ <div id="pausedTestCard" style="display:none" class="paused-test-banner">
+ <div class="paused-banner-left">
+ <div class="paused-banner-icon"><i class="bi bi-pause-circle-fill"></i></div>
+ <div class="paused-banner-text">
+ <div class="paused-banner-title">Active Test In Progress (Paused)</div>
+ <div class="paused-banner-sub" id="pausedTestInfo">You have an ongoing test in progress.</div>
+ </div>
+ </div>
+ <div class="paused-banner-actions">
+ <button class="btn-primary" onclick="resumeTest()" style="background:#f59e0b;color:#000;font-weight:800;border:none">
+ <i class="bi bi-play-circle-fill"></i> Resume Test
+ </button>
+ <button class="btn-outline" onclick="discardPausedTest()" style="background:#fff;border-color:#d97706;color:#d97706">
+ <i class="bi bi-trash"></i> Discard
+ </button>
+ </div>
+ </div>
+
+ <!-- Test Setup Form -->
+ <div id="testSetup" class="test-setup-card">
+ <div class="form-row">
+ <label class="field-label"><i class="bi bi-file-earmark-pdf"></i> Select Study Document:</label>
+ <select id="testDocSelect" class="text-field" onchange="onTestDocSelected()"></select>
+ </div>
+
+ <!-- Chapter / Scope Selector Container -->
+ <div class="form-row" id="chapterScopeSection" style="margin-top:14px">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+ <label class="field-label" style="margin-bottom:0">
+ <i class="bi bi-book-half"></i> Study Scope / Chapters:
+ </label>
+ <div class="scope-mode-toggles">
+ <label class="scope-radio-btn active" id="scopeAllLabel" onclick="setChapterScopeMode('all')">
+ <input type="radio" name="chapterScope" id="scopeAllRadio" value="all" checked style="display:none"/>
+ <i class="bi bi-collection-fill"></i> Entire Book (All Topics)
+ </label>
+ <label class="scope-radio-btn" id="scopeCustomLabel" onclick="setChapterScopeMode('custom')">
+ <input type="radio" name="chapterScope" id="scopeCustomRadio" value="custom" style="display:none"/>
+ <i class="bi bi-check2-square"></i> Select Specific Chapters
+ </label>
+ </div>
+ </div>
+
+ <!-- Custom Chapters Picker Panel -->
+ <div id="customChapterPanel" class="chapter-picker-panel" style="display:none">
+ <div class="chapter-picker-header">
+ <div class="chapter-picker-info" id="chapterSelectionSummary">
+ <span><i class="bi bi-info-circle"></i> Select one or more chapters to target:</span>
+ </div>
+ <div class="chapter-picker-actions">
+ <button type="button" class="btn-xs" onclick="selectAllChapters(true)"><i class="bi bi-check-all"></i> Select All</button>
+ <button type="button" class="btn-xs btn-xs-clear" onclick="selectAllChapters(false)"><i class="bi bi-dash-circle"></i> Clear All</button>
+ </div>
+ </div>
+ <div class="chapter-checkbox-grid" id="chapterCheckboxList">
+ <div class="chapter-loading-hint"><div class="spinner-sm"></div> Discovering document chapters &amp; sections...</div>
+ </div>
+ </div>
+ </div>
+
+ <div class="form-row" style="margin-top:14px">
+ <label class="field-label"><i class="bi bi-list-check"></i> Select Test Length &amp; Difficulty:</label>
+ <div class="test-length-grid">
+ <div class="test-len-card active" onclick="selectTestLength(16, this)">
+ <div class="len-tag">Quick Test</div>
+ <div class="len-count">16 Questions</div>
+ <div class="len-sub">4 per cognitive category (~15 min)</div>
+ </div>
+ <div class="test-len-card" onclick="selectTestLength(32, this)">
+ <div class="len-tag">Standard Test</div>
+ <div class="len-count">32 Questions</div>
+ <div class="len-sub">8 per cognitive category (~30 min)</div>
+ </div>
+ <div class="test-len-card" onclick="selectTestLength(48, this)">
+ <div class="len-tag">Comprehensive</div>
+ <div class="len-count">48 Questions</div>
+ <div class="len-sub">12 per cognitive category (~45 min)</div>
+ </div>
+ <div class="test-len-card" onclick="selectTestLength(60, this)">
+ <div class="len-tag">Mock Exam</div>
+ <div class="len-count">60 Questions</div>
+ <div class="len-sub">15 per cognitive category (~60 min)</div>
+ </div>
+ </div>
+ <input type="hidden" id="selectedTestLength" value="16"/>
+ </div>
+
+ <!-- Timed Exam vs Untimed Mode Selector -->
+ <div class="form-row" style="margin-top:14px">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+ <label class="field-label" style="margin-bottom:0">
+ <i class="bi bi-clock-history"></i> Test Timer Mode &amp; Duration:
+ </label>
+ <div class="scope-mode-toggles">
+ <label class="scope-radio-btn active" id="timerModeTimedLabel" onclick="setTimerMode('timed')">
+ <input type="radio" name="testTimerMode" id="timerModeTimedRadio" value="timed" checked style="display:none"/>
+ <i class="bi bi-hourglass-split"></i> Timed Exam (Countdown)
+ </label>
+ <label class="scope-radio-btn" id="timerModeUntimedLabel" onclick="setTimerMode('untimed')">
+ <input type="radio" name="testTimerMode" id="timerModeUntimedRadio" value="untimed" style="display:none"/>
+ <i class="bi bi-stopwatch"></i> Untimed / Unrestricted (No Limit)
+ </label>
+ </div>
+ </div>
+
+ <!-- Timed Duration Configuration Box -->
+ <div id="timedConfigPanel" class="timer-config-panel">
+ <div class="timer-presets-row">
+ <span class="timer-preset-label">Quick Presets:</span>
+ <button type="button" class="btn-timer-preset active" data-mins="20" onclick="selectTimerPreset(20, this)">20 Mins</button>
+ <button type="button" class="btn-timer-preset" data-mins="30" onclick="selectTimerPreset(30, this)">30 Mins</button>
+ <button type="button" class="btn-timer-preset" data-mins="45" onclick="selectTimerPreset(45, this)">45 Mins</button>
+ <button type="button" class="btn-timer-preset" data-mins="60" onclick="selectTimerPreset(60, this)">60 Mins</button>
+ <button type="button" class="btn-timer-preset" data-mins="90" onclick="selectTimerPreset(90, this)">90 Mins</button>
+ </div>
+ <div class="custom-timer-row">
+ <label for="customTimerInput" style="font-size:0.8rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px">
+ <i class="bi bi-sliders"></i> Or Custom Duration (Minutes):
+ </label>
+ <div class="custom-timer-input-wrap">
+ <input type="number" id="customTimerInput" class="text-field custom-timer-field" min="1" max="300" value="20" oninput="onCustomTimerInput(this)"/>
+ <span class="timer-unit-label">mins (<span id="perQuestionTimeHint">~1.25 min / question</span>)</span>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <div style="margin-top:20px;display:flex;gap:10px;align-items:center">
+ <button class="btn-primary" onclick="generateTest()">
+ <i class="bi bi-lightning-charge-fill"></i> Start Generating Test
+ </button>
+ <span class="hint" id="genScopeHint"><i class="bi bi-shield-check"></i> Entire Book: Guaranteed 100% topic &amp; category coverage</span>
+ </div>
+ </div>
+
+ <!-- Loading State -->
+ <div id="testLoading" style="display:none" class="center-loading">
+ <div class="spinner-lg"></div>
+ <p id="testLoadingMsg" style="font-weight:700;font-size:1.02rem;color:var(--text);margin-top:14px">AI is analyzing document and preparing questions...</p>
+ <p class="hint" id="testLoadingModel" style="max-width:500px;margin:4px auto">Strict balance: Cognitive Memory, Logic, Critical Thinking &amp; Creative Application</p>
+ 
+ <!-- Live Progress Bar -->
+ <div style="width:100%;max-width:440px;margin:16px auto 10px;background:rgba(67,97,238,0.12);border-radius:12px;height:10px;overflow:hidden;padding:2px">
+ <div id="testLoadingProgressBar" style="width:12%;height:100%;background:linear-gradient(90deg, #4361ee, #4cc9f0);transition:width 0.4s ease;border-radius:10px"></div>
+ </div>
+ 
+ <div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-top:4px">
+ <div id="testLoadingTimer" style="font-size:0.88rem;color:var(--primary);font-weight:700">
+ <i class="bi bi-stopwatch"></i> Elapsed: 0s
+ </div>
+ <div id="testLoadingBatchProgress" style="font-size:0.82rem;color:var(--muted);font-weight:600">
+ Synthesizing questions...
+ </div>
+ </div>
+
+ <button class="btn-outline" style="margin-top:16px;padding:6px 20px;font-size:0.8rem" onclick="cancelTestGeneration()">
+ <i class="bi bi-x-circle"></i> Cancel
+ </button>
+ </div>
+
+ <!-- Active Test Taking UI -->
+ <div id="testTakingContainer" style="display:none">
+ <!-- Top Test Bar -->
+ <div class="test-header-bar">
+ <div class="test-info-left">
+ <span class="test-badge-type" id="takingTestType">Quick Test</span>
+ <span class="test-topic-name" id="takingTestTopic">—</span>
+ </div>
+ <div style="display:flex;align-items:center;gap:10px">
+ <button class="btn-outline" id="btnTestFullscreen" onclick="toggleTestFullscreen()" title="Toggle Fullscreen Focus Mode" style="font-size:0.75rem;padding:5px 10px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;background:white">
+ <i class="bi bi-arrows-fullscreen" id="iconTestFullscreen"></i> <span id="textTestFullscreen">Fullscreen</span>
+ </button>
+ <div class="test-timer" id="testTimerDisplay">
+ <i class="bi bi-hourglass-split" id="testTimerIcon"></i> <span id="testTimerText">20:00</span>
+ </div>
+ <button class="pause-btn" onclick="pauseTest()" title="Pause test and save progress to continue later">
+ <i class="bi bi-pause-circle-fill"></i> Pause Test
+ </button>
+ </div>
+ </div>
+
+ <!-- Question Progress & Palette -->
+ <div class="test-progress-strip">
+ <div class="test-progress-fill" id="testProgressFill" style="width:0%"></div>
+ </div>
+ <div class="test-palette-wrap">
+ <div class="test-palette-title">Question Navigator:</div>
+ <div class="test-palette-grid" id="questionPalette"></div>
+ </div>
+
+ <!-- Question Card -->
+ <div class="question-card" id="currentQuestionCard">
+ <div class="q-meta-row">
+ <span class="q-num-badge" id="qNumberBadge">Question 1 of 16</span>
+ <span class="q-chap-badge" id="qChapterBadge" style="display:none"></span>
+ <span class="q-cat-badge" id="qCategoryBadge">Cognitive Memory</span>
+ </div>
+ <div class="q-text" id="qTextDisplay">Loading question...</div>
+ <div class="q-options-list" id="qOptionsList"></div>
+ </div>
+
+ <!-- Bottom Navigation Controls -->
+ <div class="test-nav-bar">
+ <button class="btn-outline" onclick="prevQuestion()" id="prevQBtn" disabled>
+ <i class="bi bi-arrow-left"></i> Previous
+ </button>
+ <div style="display:flex;gap:10px;flex-wrap:wrap">
+ <button class="btn-outline" onclick="pauseTest()" style="border-color:#f59e0b;color:#d97706">
+ <i class="bi bi-pause-fill"></i> Pause Test
+ </button>
+ <button class="btn-outline" onclick="resetTest()">
+ <i class="bi bi-x-circle"></i> Quit
+ </button>
+ <button class="btn-primary" onclick="submitTest()" id="submitTestBtn">
+ <i class="bi bi-check-circle-fill"></i> Submit Test
+ </button>
+ </div>
+ <button class="btn-outline" onclick="nextQuestion()" id="nextQBtn">
+ Next <i class="bi bi-arrow-right"></i>
+ </button>
+ </div>
+ </div>
+
+ <!-- Current Test Report View -->
+ <div id="testResults" style="display:none" class="current-report-container"></div>
+ </div>
+ </div>
+
+ <!-- ── REPORTS VIEW ── -->
+ <div id="view-reports" class="view" style="display:none">
+ <div class="view-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+ <div>
+ <h2><i class="bi bi-bar-chart-fill"></i> Comprehensive Study &amp; Test Reports</h2>
+ <p>In-depth cognitive mastery analytics, Ebbinghaus forgetting curve retention, and test history.</p>
+ </div>
+ <button class="btn-primary" onclick="openOverallDiagnosticModal()" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;font-weight:800;box-shadow:0 4px 14px rgba(67,97,238,0.25)">
+ <i class="bi bi-file-earmark-medical-fill" style="font-size:1.1rem"></i> Overall Diagnostic Analysis
+ </button>
+ </div>
+ <div class="view-body">
+ <!-- Top Metrics Row -->
+ <div class="reports-top-grid">
+ <!-- Tier Card -->
+ <div class="report-block tier-card-fancy">
+ <div class="report-block-title">
+ <i class="bi bi-trophy-fill"></i> Knowledge Tier &amp; Mastery Points
+ </div>
+ <div class="tier-row">
+ <div class="tier-pts" id="kpScore">0 pts</div>
+ <div class="tier-label" id="kpTier">Novice</div>
+ </div>
+ <div class="tier-track"><div class="tier-fill" id="kpBar" style="width:0%"></div></div>
+ <div class="tier-hint" id="kpLabel">Complete tests to earn points and level up!</div>
+ <div class="tier-stats-sub">
+ <span><i class="bi bi-check2-circle"></i> <b id="kpTotalCorrect">0</b> Correct Answers</span>
+ <span><i class="bi bi-file-earmark-check"></i> <b id="kpTestsDone">0</b> Tests Taken</span>
+ </div>
+ <button class="btn-outline" style="font-size:0.75rem;padding:6px 10px;margin-top:10px;width:100%;border-radius:6px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px" onclick="openOverallDiagnosticModal()">
+ <i class="bi bi-bar-chart-line-fill"></i> View Overall Cognitive Diagnostics
+ </button>
+ </div>
+
+ <!-- Ebbinghaus Memory Retention Card -->
+ <div class="report-block retention-card">
+ <div class="report-block-title">
+ <i class="bi bi-graph-down-arrow"></i> Memory Retention (Ebbinghaus Curve)
+ </div>
+ <div class="retention-summary-row">
+ <div class="retention-dial">
+ <span class="ret-score" id="currentRetentionPct">--%</span>
+ <span class="ret-sub">Estimated Retention</span>
+ </div>
+ <div class="retention-desc" id="retentionDesc">
+ Take tests to track your long-term memory stability and optimal review dates.
+ </div>
+ </div>
+ <div style="height:140px;position:relative;margin-top:10px">
+ <canvas id="forgettingCurveChart"></canvas>
+ </div>
+ </div>
+ </div>
+
+ <!-- Visual Analytics Charts Row -->
+ <div class="reports-charts-grid">
+ <!-- Cognitive Mastery Radar Chart -->
+ <div class="report-block">
+ <div class="report-block-title">
+ <i class="bi bi-pie-chart-fill"></i> Cognitive Category Mastery Radar
+ </div>
+ <p class="hint" style="margin-bottom:10px">Evaluates balanced skill acquisition across the 4 core intellectual domains.</p>
+ <div style="height:260px;position:relative">
+ <canvas id="categoryRadarChart"></canvas>
+ </div>
+ </div>
+
+ <!-- Performance Trajectory Line Chart -->
+ <div class="report-block">
+ <div class="report-block-title">
+ <i class="bi bi-graph-up"></i> Score Trajectory Over Time
+ </div>
+ <p class="hint" style="margin-bottom:10px">Tracks your percentage score progression across recent test attempts.</p>
+ <div style="height:260px;position:relative">
+ <canvas id="scoreTrendChart"></canvas>
+ </div>
+ </div>
+ </div>
+
+ <!-- Weak Areas & AI Diagnostic Report Row -->
+ <div class="reports-bottom-grid">
+ <!-- Weak Areas -->
+ <div class="report-block">
+ <div class="report-block-title">
+ <i class="bi bi-exclamation-triangle-fill"></i> Detected Weak Areas
+ </div>
+ <div id="weakAreasList">
+ <div class="empty-msg">No weak areas detected yet.</div>
+ </div>
+ </div>
+
+ <!-- AI Diagnostic Strategy Generator -->
+ <div class="report-block">
+ <div class="report-block-title">
+ <i class="bi bi-robot"></i> AI Diagnostic Strategy Report
+ <span class="model-tag" id="analyticsModelTag">llama3</span>
+ </div>
+ <p class="hint" style="margin-bottom:10px">Synthesizes your query patterns and test outcomes into targeted study advice.</p>
+ <button class="btn-outline" onclick="generateReport()">
+ <i class="bi bi-file-earmark-text"></i> Generate Diagnostic Report
+ </button>
+ <div id="aiReport" class="ai-report-box" style="display:none"></div>
+ </div>
+ </div>
+
+ <!-- Comprehensive Test History Table -->
+ <div class="report-block" style="margin-top:16px">
+ <div class="report-block-title">
+ <i class="bi bi-clock-history"></i> Complete Test Records &amp; Detailed Breakdown
+ </div>
+ <div id="testHistoryTableWrap">
+ <div id="testHistory"><div class="empty-msg">No tests taken yet.</div></div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- ── CHAT VIEW (GEMINI / CHATGPT WORKSPACE) ── -->
+ <div id="view-chat" class="view" style="display:none;flex-direction:column;height:100%;padding:0">
+ <div class="chat-workspace-grid">
+ <!-- Sub-Sidebar: Multiple Chat History -->
+ <div class="chat-history-sidebar">
+ <div class="chat-history-header">
+ <button class="new-chat-btn" onclick="createNewChatThread()">
+ <i class="bi bi-plus-lg"></i> New Chat
+ </button>
+ </div>
+ <div class="chat-history-title-bar">
+ <span><i class="bi bi-clock-history"></i> Chat History</span>
+ <span class="local-storage-badge" title="Saved permanently on local system storage">
+ <i class="bi bi-hdd-fill"></i> Local
+ </span>
+ </div>
+ <div class="chat-threads-scroll" id="chatThreadsList">
+ <div class="chat-threads-loading">
+ <div class="spinner-sm"></div> Loading chats...
+ </div>
+ </div>
+ <div class="chat-history-footer">
+ <div class="storage-info-chip">
+ <i class="bi bi-shield-check"></i> Pure Local File Storage
+ </div>
+ </div>
+ </div>
+
+ <!-- Main Chat Area -->
+ <div class="chat-main-area">
+ <!-- Chat Top Controls Bar -->
+ <div class="chat-top-bar">
+ <div class="chat-title-group">
+ <div class="chat-active-title" id="chatActiveTitle">New Conversation</div>
+ </div>
+ <div class="chat-controls-group">
+ <!-- Save Chat Thread to Notes Button -->
+ <button class="btn-outline" style="font-size:0.75rem;padding:5px 10px;display:inline-flex;align-items:center;gap:5px;border-radius:20px;background:white" onclick="openSaveChatNotesModal('thread')" title="Save this chat conversation to your Study Notes">
+ <i class="bi bi-journal-plus" style="color:var(--primary)"></i> Save to Notes
+ </button>
+ <!-- Document Scope / RAG Selector -->
+ <div class="chat-scope-selector" title="Select document for Grounded RAG or let Auto dynamically choose">
+ <i class="bi bi-file-earmark-pdf"></i>
+ <select id="chatDocFilter" onchange="onChatDocFilterChange()">
+ <option value="auto" selected>Auto: Smart Document Router</option>
+ <option value="all">All Uploaded Documents (RAG)</option>
+ <option value="none">General Academic Knowledge Only</option>
+ </select>
+ </div>
+ <!-- Model Selector Dropdown -->
+ <div class="chat-model-selector" title="Select AI Model or let Auto dynamically choose">
+ <i class="bi bi-cpu" style="color:var(--primary);margin-left:8px"></i>
+ <select id="chatModelSelect" onchange="onChatModelChange()" style="border:none;background:transparent;font-size:0.78rem;font-weight:600;color:var(--text);padding:4px 8px;cursor:pointer;outline:none">
+ <option value="auto">Auto: Smart Router</option>
+ <option value="mistral">Mistral (Balanced &amp; Code)</option>
+ <option value="gemma3:4b">Gemma 3 4B (Tutor &amp; Notes)</option>
+ <option value="phi3">Phi-3 (Fast Chat)</option>
+ <option value="llama3">Llama 3 (Deep Logic)</option>
+ </select>
+ <span class="chat-model-pill" id="chatActiveModelPill" style="display:none">
+ <span id="chatModelName">mistral</span>
+ </span>
+ </div>
+ </div>
+ </div>
+
+ <!-- Chat Messages Container -->
+ <div class="chat-messages-container" id="chatBox">
+ <div class="chat-welcome" id="chatWelcomeScreen">
+ <div class="welcome-gemini-icon"><i class="bi bi-chat-square-text-fill"></i></div>
+ <h2>AI Academic Tutor &amp; Notes Companion</h2>
+ <p>Ask anything — answers intelligently draw from your notes with full RAG citations and conversational memory.</p>
+ <div class="quick-prompt-chips" id="dynamicChatChips"></div>
+ </div>
+ </div>
+
+ <!-- Chat Input Area -->
+ <div class="chat-input-container">
+ <div class="chat-input-wrapper">
+ <textarea id="chatInput" class="chat-textarea" rows="1" placeholder="Message StudyEdge AI or ask from your notes... (Shift+Enter for new line)" oninput="autoResizeChatInput(this)"></textarea>
+ <button class="chat-send-btn" id="sendBtn" onclick="sendQuestion()" title="Send (Enter)">
+ <i class="bi bi-arrow-up-circle-fill"></i>
+ </button>
+ </div>
+ <div class="chat-input-footnote">
+ <span>StudyEdge AI draws from your local notes with RAG. Stored permanently on local system storage.</span>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- ── PLANNER VIEW ── -->
+ <div id="view-planner" class="view" style="display:none">
+ <div class="view-header">
+ <h2><i class="bi bi-calendar3"></i> Study Planner</h2>
+ <p>Schedule sessions in advance. You'll get push reminders automatically.</p>
+ </div>
+ <div class="view-body">
+ <!-- Create plan form -->
+ <div class="report-block">
+ <div class="report-block-title"><i class="bi bi-plus-circle-fill"></i> Schedule a Session</div>
+ <div class="planner-form">
+ <div class="form-row">
+ <label class="field-label">Topic</label>
+ <input type="text" id="planTopic" class="text-field" placeholder="e.g. Data Structures Ch3"/>
+ </div>
+ <div class="form-row">
+ <label class="field-label">Date &amp; Time</label>
+ <input type="datetime-local" id="planDateTime" class="text-field" onchange="validatePlanDateTime(this)"/>
+ </div>
+ <div class="form-row">
+ <label class="field-label">Duration (minutes)</label>
+ <input type="number" id="planDuration" class="text-field" value="25" min="5" max="180"/>
+ </div>
+ <div class="form-row">
+ <label class="field-label">Notes (optional)</label>
+ <textarea id="planNotes" class="text-field" rows="2" placeholder="What do you want to cover?"></textarea>
+ </div>
+ <button class="btn-primary" onclick="createPlan()">
+ <i class="bi bi-calendar-plus"></i> Schedule Session
+ </button>
+ </div>
+ </div>
+ <!-- Today's plans -->
+ <div class="report-block">
+ <div class="report-block-title"><i class="bi bi-sun"></i> Today's Plans</div>
+ <div id="todayPlansList"><div class="empty-msg">No sessions planned for today.</div></div>
+ </div>
+ <!-- Upcoming plans -->
+ <div class="report-block">
+ <div class="report-block-title"><i class="bi bi-calendar-week"></i> Upcoming (7 days)</div>
+ <div id="upcomingPlansList"><div class="empty-msg">No upcoming sessions.</div></div>
+ </div>
+ </div>
+ </div>
+
+ </div>
+
+ <!-- ═══════════ RIGHT PANEL ═══════════ -->
+ <div class="panel panel-right">
+ <div class="section-label"><i class="bi bi-sliders"></i> AI Models</div>
+ <div class="model-list">
+ <div class="model-item">
+ <span class="model-task">Q&amp;A</span>
+ <select onchange="switchModel('qa',this.value)" class="model-select" id="modelQA">
+ <option value="gemma3:4b">gemma3:4b</option>
+ <option value="phi3">phi3</option>
+ <option value="mistral">mistral</option>
+ <option value="llama3">llama3</option>
+ <option value="llama3:8b">llama3:8b</option>
+ </select>
+ </div>
+ <div class="model-item">
+ <span class="model-task">Summary</span>
+ <select onchange="switchModel('summary',this.value)" class="model-select" id="modelSum">
+ <option value="mistral">mistral</option>
+ <option value="phi3">phi3</option>
+ <option value="gemma3:4b">gemma3:4b</option>
+ <option value="llama3">llama3</option>
+ </select>
+ </div>
+ <div class="model-item">
+ <span class="model-task">Test Gen</span>
+ <select onchange="switchModel('questions',this.value)" class="model-select" id="modelQ">
+ <option value="phi3">phi3</option>
+ <option value="mistral">mistral</option>
+ <option value="gemma3:4b">gemma3:4b</option>
+ <option value="llama3">llama3</option>
+ </select>
+ </div>
+ <div class="model-item">
+ <span class="model-task">Analytics</span>
+ <select onchange="switchModel('analytics',this.value)" class="model-select" id="modelA">
+ <option value="llama3">llama3</option>
+ <option value="mistral">mistral</option>
+ <option value="phi3">phi3</option>
+ <option value="gemma3:4b">gemma3:4b</option>
+ </select>
+ </div>
+ </div>
+
+ <div class="section-label" style="margin-top:16px"><i class="bi bi-tools"></i> Quick Tools</div>
+ <div class="tool-grid">
+ <button class="tool-btn" onclick="playAudioOverview()">
+ <i class="bi bi-volume-up-fill"></i>
+ <span>Audio</span>
+ </button>
+ <button class="tool-btn" onclick="toggleNotes()">
+ <i class="bi bi-journal-plus"></i>
+ <span>Notes</span>
+ </button>
+ <button class="tool-btn" onclick="generateSummary()">
+ <i class="bi bi-card-list"></i>
+ <span>Summary</span>
+ </button>
+ <button class="tool-btn" onclick="generateStudyQs()">
+ <i class="bi bi-lightbulb"></i>
+ <span>Flashcards</span>
+ </button>
+ </div>
+
+ <div class="section-label" style="margin-top:16px"><i class="bi bi-activity"></i> Session Monitor</div>
+ <div class="live-stats" id="liveStats">
+ <div class="live-stat-row"><i class="bi bi-file-earmark-pdf"></i> <span id="liveDocs">0 docs</span></div>
+ <div class="live-stat-row"><i class="bi bi-clock"></i> <span id="liveElapsed">No active session</span></div>
+ <div class="live-stat-row"><i class="bi bi-speedometer"></i> Pace: <span id="livePace">—</span></div>
+ <div class="live-stat-row"><i class="bi bi-bullseye"></i> Focus: <span id="liveFocus">—</span></div>
+ <div class="live-stat-row"><i class="bi bi-calendar-check"></i> <span id="liveDate"></span></div>
+ </div>
+ <!-- Model Status -->
+ <div class="section-label" style="margin-top:16px"><i class="bi bi-cpu"></i> Model Status</div>
+ <div class="model-status-list" id="modelStatusList">
+ <div class="model-status-row"><span>gemma3:4b</span> <span class="mstat" id="mstat-gemma3">Checking...</span></div>
+ <div class="model-status-row"><span>phi3</span> <span class="mstat" id="mstat-phi3">Checking...</span></div>
+ <div class="model-status-row"><span>mistral</span> <span class="mstat" id="mstat-mistral">Checking...</span></div>
+ <div class="model-status-row"><span>llama3</span> <span class="mstat" id="mstat-llama3">Checking...</span></div>
+ </div>
+ <!-- Active Model Badge (dynamically updated by JS) -->
+ <div id="activeModelBar" style="margin-top:10px;padding:8px 10px;border-radius:8px;background:rgba(67,97,238,0.08);border:1px solid rgba(67,97,238,0.2);font-size:0.78rem;">
+ <div style="display:flex;align-items:center;justify-content:space-between">
+ <span style="color:var(--muted);font-weight:600">Last Active:</span>
+ <span style="font-weight:800;color:var(--primary)" id="activeModelLabel">—</span>
+ </div>
+ <div style="font-size:0.7rem;color:var(--muted);margin-top:2px" id="activeModelTask">No model used yet</div>
+ </div>
+ <!-- Push Notifications & Mobile App -->
+ <div class="section-label" style="margin-top:16px"><i class="bi bi-phone"></i> Mobile Companion App</div>
+ <div style="padding:0 4px;display:flex;flex-direction:column;gap:8px">
+ <a href="/download/StudyEdge.apk?v=1.1.2" download class="btn-primary w100" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;background:var(--success);color:white;font-weight:700;text-decoration:none;border-radius:8px;box-shadow:0 2px 8px rgba(35,178,109,0.25)">
+ <i class="bi bi-download"></i> Download StudyEdge.apk (v1.1.2 Auto Discovery)
+ </a>
+ <button class="btn-outline w100" onclick="openMobileModal()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:7px;font-size:0.8rem">
+ <i class="bi bi-phone"></i> Mobile Web &amp; Setup
+ </button>
+ <p class="hint" style="margin-top:2px" id="pushStatusText">v1.1.2: Universal parallel multi-subnet &amp; mobile hotspot auto-discovery engine.</p>
+ </div>
+ </div>
+
+</div>
+
+<!-- ── NOTES PANEL ── -->
+<div class="overlay" id="notesOverlay" style="display:none" onclick="closeNotes()"></div>
+<div class="side-panel" id="notesPanel" style="display:none">
+ <div class="side-header">
+ <h3><i class="bi bi-journal-text"></i> My Notes</h3>
+ <button onclick="closeNotes()" class="icon-btn"><i class="bi bi-x-lg"></i></button>
+ </div>
+ <button class="btn-primary" style="margin-bottom:12px" onclick="addNote()">
+ <i class="bi bi-plus"></i> New Note
+ </button>
+ <div id="notesList" style="flex:1;overflow-y:auto"></div>
+ <div id="noteEditor" style="display:none;flex:1;flex-direction:column;gap:10px">
+ <textarea id="noteTextarea" class="notes-ta" placeholder="Write your notes here..."></textarea>
+ <div class="note-actions">
+ <button class="btn-primary" onclick="saveNote()"><i class="bi bi-floppy"></i> Save</button>
+ <button class="btn-outline" onclick="summarizeCurrentNote()" style="color:var(--primary);border-color:#c7d2fe" title="Generate AI Study Summary of this note"><i class="bi bi-card-list"></i> Summarize</button>
+ <button class="btn-outline" onclick="backToNotesList()"><i class="bi bi-arrow-left"></i></button>
+ <button class="btn-danger" onclick="deleteNote()"><i class="bi bi-trash"></i></button>
+ </div>
+ </div>
+</div>
+
+<!-- ── AUDIO MODAL ── -->
+<div class="modal-overlay" id="audioModal" style="display:none;z-index:10000">
+ <div class="modal-box" style="max-width:580px;width:95%;box-sizing:border-box;max-height:90vh;display:flex;flex-direction:column">
+ <div class="modal-head" style="flex-shrink:0">
+ <h3><i class="bi bi-volume-up-fill" style="color:var(--primary)"></i> Audio Overview &amp; Voice Studio</h3>
+ <button class="icon-btn" onclick="closeAudioModal()"><i class="bi bi-x-lg"></i></button>
+ </div>
+ <p class="modal-sub" style="margin-bottom:10px;flex-shrink:0">Listen to AI synthesized audio summaries of your uploaded documents and study notes.</p>
+ 
+ <!-- Audio Source Tabs -->
+ <div class="audio-source-tabs" style="flex-shrink:0">
+ <button class="audio-tab-btn active" id="audioTabDocs" onclick="switchAudioTab('docs')">
+ <i class="bi bi-file-earmark-pdf-fill" style="color:#e63980"></i> Documents (<span id="audioDocsCount">0</span>)
+ </button>
+ <button class="audio-tab-btn" id="audioTabNotes" onclick="switchAudioTab('notes')">
+ <i class="bi bi-journal-text" style="color:var(--primary)"></i> Study Notes (<span id="audioNotesCount">0</span>)
+ </button>
+ </div>
+
+ <!-- Voice and Playback Options with Preview -->
+ <div class="audio-settings-box" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-bottom:12px;flex-shrink:0">
+ <div style="display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:8px;align-items:center">
+ <div>
+ <label style="font-size:0.72rem;font-weight:700;color:var(--text);display:block;margin-bottom:3px"><i class="bi bi-person-lines-fill"></i> Voice Engine</label>
+ <select id="audioVoiceSelect" class="input-field" style="padding:5px 8px;font-size:0.75rem;border-radius:6px;width:100%"></select>
+ </div>
+ <div>
+ <label style="font-size:0.72rem;font-weight:700;color:var(--text);display:block;margin-bottom:3px"><i class="bi bi-speedometer2"></i> Speed</label>
+ <select id="audioSpeedSelect" class="input-field" style="padding:5px 8px;font-size:0.75rem;border-radius:6px;width:100%">
+ <option value="0.8">0.8x (Slow)</option>
+ <option value="1.0" selected>1.0x (Normal)</option>
+ <option value="1.2">1.2x (Brisk)</option>
+ <option value="1.4">1.4x (Fast)</option>
+ </select>
+ </div>
+ <div>
+ <label style="font-size:0.72rem;font-weight:700;color:var(--text);display:block;margin-bottom:3px"><i class="bi bi-soundwave"></i> Pitch</label>
+ <select id="audioPitchSelect" class="input-field" style="padding:5px 8px;font-size:0.75rem;border-radius:6px;width:100%">
+ <option value="0.85">Warm / Deep</option>
+ <option value="1.0" selected>Natural</option>
+ <option value="1.15">High / Crisp</option>
+ </select>
+ </div>
+ </div>
+ 
+ <!-- Offline & Preview Voice Controls -->
+ <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px dashed #e2e8f0">
+ <div style="font-size:0.72rem;color:#64748b;display:flex;align-items:center;gap:4px">
+ <i class="bi bi-shield-check" style="color:#10b981"></i> 100% Offline Speech Synthesis
+ </div>
+ <button type="button" onclick="previewAudioVoice()" style="background:#eef2ff;color:var(--primary);border:1px solid #c7d2fe;font-weight:700;font-size:0.75rem;padding:4px 10px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;cursor:pointer">
+ <i class="bi bi-volume-up-fill"></i> Preview Voice Style
+ </button>
+ </div>
+ </div>
+
+ <!-- Active Audio Player Bar (Embedded Widget) -->
+ <div id="audioPlayerWidget" style="display:none;background:#eef2ff;border:1.5px solid #c7d2fe;border-radius:10px;padding:10px 14px;margin-bottom:12px">
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+ <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+ <div class="audio-pulse-icon" style="width:30px;height:30px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0">
+ <i class="bi bi-volume-up-fill" id="audioPlayerStatusIcon"></i>
+ </div>
+ <div style="flex:1;min-width:0">
+ <div style="font-size:0.70rem;font-weight:700;color:var(--primary);letter-spacing:0.5px;text-transform:uppercase">Speaking Aloud</div>
+ <div style="font-size:0.82rem;font-weight:700;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="audioPlayerTitle">—</div>
+ </div>
+ </div>
+ <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+ <button class="btn-primary" id="btnAudioPauseToggle" onclick="toggleAudioPause()" style="font-size:0.75rem;padding:5px 10px;border-radius:6px">
+ <i class="bi bi-pause-fill" id="btnAudioPauseIcon"></i> <span id="btnAudioPauseText">Pause</span>
+ </button>
+ <button class="btn-outline" onclick="stopAudioPlayback()" style="font-size:0.75rem;padding:5px 10px;border-radius:6px;color:#ef4444;border-color:#fca5a5" title="Stop">
+ <i class="bi bi-stop-fill"></i> Stop
+ </button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Scrollable Lists -->
+ <div id="audioDocList" class="audio-items-container" style="max-height:300px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:8px;padding-right:4px"></div>
+ <div id="audioNotesList" class="audio-items-container" style="display:none;max-height:300px;overflow-y:auto;overflow-x:hidden;flex-direction:column;gap:8px;padding-right:4px"></div>
+
+ <div id="audioSpin" style="display:none;text-align:center;padding:18px">
+ <div class="spinner" style="margin:0 auto"></div>
+ <p class="hint" style="margin-top:8px;font-weight:700;color:var(--primary)">Synthesizing AI Audio Summary with Mistral...</p>
+ </div>
+ </div>
+</div>
+
+<!-- ── TEXT SUMMARY MODAL ── -->
+<div class="modal-overlay" id="summaryModal" style="display:none;z-index:10000">
+ <div class="modal-box" style="max-width:580px;width:95%;box-sizing:border-box;max-height:90vh;display:flex;flex-direction:column">
+ <div class="modal-head" style="flex-shrink:0">
+ <h3><i class="bi bi-card-list" style="color:var(--primary)"></i> AI Text Summary Studio</h3>
+ <button class="icon-btn" onclick="closeSummaryModal()"><i class="bi bi-x-lg"></i></button>
+ </div>
+ <p class="modal-sub" style="margin-bottom:10px;flex-shrink:0">Generate a structured AI study summary for your documents, notes, or any open topic.</p>
+
+ <!-- Source Selector Tabs -->
+ <div class="audio-source-tabs" style="flex-shrink:0">
+ <button class="audio-tab-btn active" id="summaryTabDocs" onclick="switchSummaryTab('docs')">
+ <i class="bi bi-file-earmark-pdf-fill" style="color:#e63980"></i> Documents (<span id="summaryDocsCount">0</span>)
+ </button>
+ <button class="audio-tab-btn" id="summaryTabNotes" onclick="switchSummaryTab('notes')">
+ <i class="bi bi-journal-text" style="color:var(--primary)"></i> Study Notes (<span id="summaryNotesCount">0</span>)
+ </button>
+ <button class="audio-tab-btn" id="summaryTabCustom" onclick="switchSummaryTab('custom')">
+ <i class="bi bi-pencil-square" style="color:#10b981"></i> Custom Topic
+ </button>
+ </div>
+
+ <!-- Custom Topic Input Box -->
+ <div id="summaryCustomBox" style="display:none;flex-direction:column;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:10px;flex-shrink:0">
+ <label style="font-size:0.75rem;font-weight:700;color:var(--text)"><i class="bi bi-search"></i> Enter Topic to Summarize</label>
+ <div style="display:flex;gap:6px">
+ <input type="text" id="summaryCustomInput" class="text-field" placeholder="e.g., Quantum Computing, Backpropagation, Operating Systems..." style="font-size:0.8rem;padding:8px 10px;flex:1" onkeydown="if(event.key==='Enter') generateCustomSummary()"/>
+ <button class="btn-primary" onclick="generateCustomSummary()" style="padding:8px 14px;font-size:0.78rem;border-radius:8px">
+ <i class="bi bi-lightning-charge-fill"></i> Summarize
+ </button>
+ </div>
+ </div>
+
+ <!-- Scrollable Lists for Documents and Notes -->
+ <div id="summaryDocList" class="audio-items-container" style="max-height:300px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:8px;padding-right:4px"></div>
+ <div id="summaryNotesList" class="audio-items-container" style="display:none;max-height:300px;overflow-y:auto;overflow-x:hidden;flex-direction:column;gap:8px;padding-right:4px"></div>
+
+ <div id="summarySpin" style="display:none;text-align:center;padding:18px">
+ <div class="spinner" style="margin:0 auto"></div>
+ <p class="hint" style="margin-top:8px;font-weight:700;color:var(--primary)">Generating Structured AI Summary with Mistral...</p>
+ </div>
+ </div>
+</div>
+
+<!-- ── ALERT TOAST ── -->
+<div class="toast" id="toast" style="display:none">
+ <i class="bi bi-info-circle-fill"></i>
+ <span id="toastText"></span>
+ <button onclick="closeToast()" class="icon-btn" style="color:rgba(255,255,255,.7)">
+ <i class="bi bi-x"></i>
+ </button>
+</div>
+
+<script src="/static/socket.io.min.js"></script>
+<script src="/static/script.js?t={{ range(100000, 999999) | random }}"></script>
+<script>
+// Display student name from localStorage
+(function() {
+ var storedName = localStorage.getItem('student_name');
+ var nameEl = document.getElementById('navStudentName');
+ if (nameEl && storedName) nameEl.textContent = storedName;
+})();
+</script>
+
+<!-- ── PAUSE REMINDERS (DO NOT DISTURB) MODAL ── -->
+<div class="modal-overlay" id="pauseRemindersModal" style="display:none;z-index:10000">
+ <div class="modal-box" style="width:94%;max-width:440px;box-sizing:border-box">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+ <div style="display:flex;align-items:center;gap:8px">
+ <div style="width:34px;height:34px;border-radius:9px;background:#eef2ff;color:#4f46e5;display:flex;align-items:center;justify-content:center;font-size:1.1rem">
+ <i class="bi bi-bell-slash-fill"></i>
+ </div>
+ <div>
+ <div style="font-weight:800;font-size:1rem;color:var(--text)">Pause Reminders &amp; Alarms</div>
+ <div style="font-size:0.75rem;color:var(--muted)">Do Not Disturb (Mute notifications while busy)</div>
+ </div>
+ </div>
+ <button class="icon-btn" onclick="closePauseRemindersModal()"><i class="bi bi-x-lg"></i></button>
+ </div>
+
+ <!-- Active Pause Banner -->
+ <div id="pauseModalActiveBanner" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 14px;margin-bottom:14px">
+ <div style="display:flex;align-items:center;justify-content:space-between">
+ <div style="font-size:0.82rem;font-weight:700;color:#991b1b;display:flex;align-items:center;gap:6px">
+ <i class="bi bi-bell-slash-fill"></i> Reminders are PAUSED
+ </div>
+ <button class="btn-primary" onclick="resumeReminders()" style="background:#059669;font-size:0.75rem;padding:4px 12px;border:none;border-radius:6px;cursor:pointer;font-weight:700">
+ <i class="bi bi-play-fill"></i> Resume Now
+ </button>
+ </div>
+ <div style="font-size:0.72rem;color:#b91c1c;margin-top:4px" id="pauseModalRemainingText">Alarms and study reminders are silenced.</div>
+ </div>
+
+ <div style="font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:8px">
+ Select how long to silence reminders:
+ </div>
+
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+ <button class="btn-outline pause-preset-btn" onclick="pauseReminders(30)" style="padding:10px;text-align:left;border-radius:8px">
+ <div style="font-weight:700;font-size:0.82rem"><i class="bi bi-stopwatch"></i> 30 Minutes</div>
+ <div style="font-size:0.68rem;color:var(--muted)">Quick break / call</div>
+ </button>
+ <button class="btn-outline pause-preset-btn" onclick="pauseReminders(60)" style="padding:10px;text-align:left;border-radius:8px">
+ <div style="font-weight:700;font-size:0.82rem"><i class="bi bi-clock"></i> 1 Hour</div>
+ <div style="font-size:0.68rem;color:var(--muted)">Short meeting / busy</div>
+ </button>
+ <button class="btn-outline pause-preset-btn" onclick="pauseReminders(120)" style="padding:10px;text-align:left;border-radius:8px">
+ <div style="font-weight:700;font-size:0.82rem"><i class="bi bi-hourglass-split"></i> 2 Hours</div>
+ <div style="font-size:0.68rem;color:var(--muted)">Deep external work</div>
+ </button>
+ <button class="btn-outline pause-preset-btn" onclick="pauseReminders(240)" style="padding:10px;text-align:left;border-radius:8px">
+ <div style="font-weight:700;font-size:0.82rem"><i class="bi bi-calendar-event"></i> 4 Hours</div>
+ <div style="font-size:0.68rem;color:var(--muted)">Half-day silence</div>
+ </button>
+ <button class="btn-outline pause-preset-btn" onclick="pauseReminders(480)" style="padding:10px;text-align:left;border-radius:8px">
+ <div style="font-weight:700;font-size:0.82rem"><i class="bi bi-moon-stars-fill"></i> 8 Hours / Tonight</div>
+ <div style="font-size:0.68rem;color:var(--muted)">Silence overnight</div>
+ </button>
+ <button class="btn-outline pause-preset-btn" onclick="pauseReminders(-1)" style="padding:10px;text-align:left;border-radius:8px;border-color:#cbd5e1">
+ <div style="font-weight:700;font-size:0.82rem"><i class="bi bi-slash-circle"></i> Indefinitely</div>
+ <div style="font-size:0.68rem;color:var(--muted)">Until I turn it back on</div>
+ </button>
+ </div>
+
+ <div style="display:flex;justify-content:flex-end;gap:8px">
+ <button class="btn-outline" onclick="closePauseRemindersModal()" style="font-size:0.8rem">Close</button>
+ </div>
+ </div>
+</div>
+
+<!-- Push Notification Prompt Modal -->
+<div class="modal-overlay" id="pushModal" style="display:none">
+ <div class="modal-box" style="max-width:380px;text-align:center">
+ <i class="bi bi-bell-fill" style="font-size:2.5rem;color:#4361ee;display:block;margin-bottom:12px"></i>
+ <h3>Enable Study Reminders</h3>
+ <p style="font-size:0.8rem;color:#64748b;margin-bottom:14px">Get study session reminders and Pomodoro alerts on your phone or computer, even when closed.</p>
+ <button class="btn-primary" style="width:100%" onclick="requestPushPermission()">
+ <i class="bi bi-bell"></i> Enable Mobile Alerts
+ </button>
+ <button class="btn-outline" style="width:100%;margin-top:8px" onclick="testMobileAlert()">
+ <i class="bi bi-send-check"></i> Test Mobile Alert
+ </button>
+ <button class="btn-outline" style="width:100%;margin-top:8px" onclick="closePushModal()">
+ Close
+ </button>
+ </div>
+</div>
+
+<!-- Diagnostic Report Modal (for re-inspecting historical tests) -->
+<div class="modal-overlay" id="diagnosticModal" style="display:none">
+  <div class="modal-box" style="max-width:850px;width:95%;max-height:88vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
+    <div class="modal-head" style="padding:16px 20px;border-bottom:1px solid var(--border)">
+      <div>
+        <h3 id="diagModalTitle" style="margin:0"><i class="bi bi-file-earmark-medical-fill"></i> Test Diagnostic Analysis</h3>
+        <span class="hint" id="diagModalSub">Performance breakdown and cognitive analytics</span>
+      </div>
+      <button class="icon-btn" onclick="closeDiagnosticModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div id="diagModalBody" style="flex:1;overflow-y:auto;padding:20px"></div>
+  </div>
+</div>
+
+<!-- Overall Comprehensive Diagnostic Report Modal (Synthesizes all tests together) -->
+<div class="modal-overlay" id="overallDiagnosticModal" style="display:none;z-index:10005">
+  <div class="modal-box" style="max-width:920px;width:96%;max-height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden;border-radius:18px;box-shadow:0 20px 60px rgba(15,23,42,0.25)">
+    <div class="modal-head" style="padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#fafbfe">
+      <div>
+        <h3 style="margin:0;font-size:1.2rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px">
+          <i class="bi bi-file-earmark-medical-fill" style="color:var(--primary)"></i> Overall Test Diagnostic Analysis
+        </h3>
+        <span class="hint" id="overallDiagModalSub">Cumulative cognitive mastery report across all completed tests</span>
+      </div>
+      <button class="icon-btn" onclick="closeOverallDiagnosticModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div id="overallDiagModalBody" style="flex:1;overflow-y:auto;padding:22px;background:#f8fafc"></div>
+  </div>
+</div>
+
+
+<!-- Mobile Companion Modal -->
+<div class="modal-overlay" id="mobileAppModal" style="display:none">
+ <div class="modal-box" style="max-width:460px;max-height:90vh;overflow-y:auto;text-align:center;padding:24px 20px;overscroll-behavior:contain">
+ <div style="width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg, #4361ee, #3a0ca3);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:1.8rem;margin-bottom:14px;box-shadow:0 8px 20px rgba(67,97,238,0.35)">
+ <i class="bi bi-phone-vibrate"></i>
+ </div>
+ <h3 style="font-size:1.25rem;font-weight:800;margin-bottom:6px">Install StudyEdge on Phone</h3>
+ <div style="margin-bottom:16px">
+ <a href="/download/StudyEdge.apk?v=1.1.2" download class="btn-primary" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;width:100%;text-decoration:none;background:var(--success);font-weight:800;font-size:0.95rem;border-radius:10px;box-shadow:0 4px 14px rgba(35,178,109,0.35)">
+ <i class="bi bi-download" style="font-size:1.1rem"></i> Download StudyEdge.apk (v1.1.2 Auto Discovery)
+ </a>
+ <div style="font-size:0.75rem;color:var(--muted);margin-top:6px">Universal auto-discovery across Hotspots, College Wi-Fi, and LANs</div>
+ </div>
+
+ <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin-bottom:18px;text-align:left">
+ <div style="font-size:0.75rem;font-weight:800;color:#334155;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Direct Wi-Fi Mobile Address:</div>
+ <div style="font-family:monospace;font-size:0.98rem;font-weight:800;color:#4361ee;word-break:break-all;background:white;border:1.5px solid #cbd5e1;padding:10px 12px;border-radius:8px;text-align:center" id="mobileLanUrl">
+ Connecting...
+ </div>
+ <div style="margin-top:14px;font-size:0.82rem;color:#1e293b;line-height:1.6">
+ <div style="font-weight:800;color:#0f172a;margin-bottom:6px">How to Connect from Your Phone:</div>
+ <div style="background:#f1f5f9;border-radius:8px;padding:10px 12px;margin-bottom:8px">
+ <strong> Option 1: Native Android APK (Recommended)</strong><br>
+ • Download &amp; install <code>StudyEdge.apk</code> above.<br>
+ • <strong>Auto Discovery:</strong> The app automatically finds your laptop across Wi-Fi without typing IPs.<br>
+ • <strong>Hardware Alarms:</strong> Rings system alarms even when your phone is locked or on silent.
+ </div>
+ <div style="background:#f1f5f9;border-radius:8px;padding:10px 12px">
+ <strong> Option 2: Phone Browser (Chrome / Safari)</strong><br>
+ • Connect phone to the <strong>same Wi-Fi</strong> as your laptop.<br>
+ • Open the <strong>Direct Wi-Fi Mobile Address</strong> above in Chrome or Safari.<br>
+ • Tap <em>"Add to Home screen"</em> for a full-screen app experience.
+ </div>
+ </div>
+ <div style="margin-top:12px;padding:10px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;font-size:0.78rem;color:#065f46">
+ <strong> 100% Local, Offline &amp; Private:</strong> Ollama AI, vector search, and live Pomodoro timer run entirely on your local machine and local Wi-Fi. No cloud accounts or subscriptions required.
+ </div>
+ </div>
+
+ <div style="display:flex;gap:10px">
+ <button class="btn-primary" style="flex:1" onclick="window.open('/mobile', '_blank')">
+ <i class="bi bi-box-arrow-up-right"></i> Open Mobile Preview
+ </button>
+ <button class="btn-outline" style="flex:1" onclick="closeMobileModal()">
+ Close
+ </button>
+ </div>
+ </div>
+</div>
+
+<!-- ── FLEXIBLE SAVE TO NOTES MODAL ── -->
+<div class="modal-overlay" id="chatSaveNotesModal" style="display:none;z-index:10002">
+ <div class="modal-box" style="width:94%;max-width:540px;box-sizing:border-box;max-height:92vh;overflow-y:auto">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid #e2e8f0;padding-bottom:12px">
+ <div style="display:flex;align-items:center;gap:10px">
+ <div style="width:36px;height:36px;border-radius:10px;background:#e0e7ff;color:#4361ee;display:flex;align-items:center;justify-content:center;font-size:1.2rem">
+ <i class="bi bi-journal-plus"></i>
+ </div>
+ <div>
+ <h3 style="margin:0;font-size:1.1rem;font-weight:800;color:#0f172a">Save to Study Notes</h3>
+ <p style="margin:0;font-size:0.75rem;color:#64748b">Organize your AI insights into your personal notes</p>
+ </div>
+ </div>
+ <button class="icon-btn" onclick="closeSaveChatNotesModal()" style="border:1px solid #cbd5e1"><i class="bi bi-x-lg"></i></button>
+ </div>
+
+ <!-- 1. Scope: What to save -->
+ <div style="margin-bottom:16px">
+ <label style="font-size:0.8rem;font-weight:700;color:#334155;display:block;margin-bottom:6px">
+ <i class="bi bi-ui-checks"></i> 1. What would you like to save?
+ </label>
+ <div style="display:flex;flex-direction:column;gap:8px">
+ <label style="display:flex;align-items:flex-start;gap:10px;background:#f8fafc;border:1.5px solid #cbd5e1;padding:10px 12px;border-radius:8px;cursor:pointer" id="saveScopePairLabel">
+ <input type="radio" name="saveNotesScope" id="saveScopePair" value="pair" checked onchange="onSaveNotesScopeChange()" style="margin-top:3px"/>
+ <div>
+ <div style="font-size:0.84rem;font-weight:700;color:#1e293b">Question &amp; Answer Pair <span style="font-size:0.7rem;background:#dbeafe;color:#1d4ed8;padding:1px 6px;border-radius:10px;font-weight:700">Recommended</span></div>
+ <div style="font-size:0.73rem;color:#64748b">Saves your question along with the AI answer for complete context.</div>
+ </div>
+ </label>
+ <label style="display:flex;align-items:flex-start;gap:10px;background:#f8fafc;border:1.5px solid #cbd5e1;padding:10px 12px;border-radius:8px;cursor:pointer" id="saveScopeAnswerLabel">
+ <input type="radio" name="saveNotesScope" id="saveScopeAnswer" value="answer" onchange="onSaveNotesScopeChange()" style="margin-top:3px"/>
+ <div>
+ <div style="font-size:0.84rem;font-weight:700;color:#1e293b">This AI Answer Only</div>
+ <div style="font-size:0.73rem;color:#64748b">Saves only the selected AI response text.</div>
+ </div>
+ </label>
+ <label style="display:flex;align-items:flex-start;gap:10px;background:#f8fafc;border:1.5px solid #cbd5e1;padding:10px 12px;border-radius:8px;cursor:pointer" id="saveScopeThreadLabel">
+ <input type="radio" name="saveNotesScope" id="saveScopeThread" value="thread" onchange="onSaveNotesScopeChange()" style="margin-top:3px"/>
+ <div>
+ <div style="font-size:0.84rem;font-weight:700;color:#1e293b">Entire Conversation Thread</div>
+ <div style="font-size:0.73rem;color:#64748b">Compiles all questions and answers from this conversation into one comprehensive note.</div>
+ </div>
+ </label>
+ </div>
+ </div>
+
+ <!-- 2. Target: Where to save -->
+ <div style="margin-bottom:16px">
+ <label style="font-size:0.8rem;font-weight:700;color:#334155;display:block;margin-bottom:6px">
+ <i class="bi bi-folder2-open"></i> 2. Where would you like to save it?
+ </label>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+ <label style="display:flex;align-items:center;gap:8px;background:#f8fafc;border:1.5px solid #cbd5e1;padding:9px 12px;border-radius:8px;cursor:pointer" id="saveTargetAppendLabel">
+ <input type="radio" name="saveNotesTarget" id="saveTargetAppend" value="append" checked onchange="onSaveNotesTargetChange()"/>
+ <span style="font-size:0.82rem;font-weight:700;color:#1e293b"><i class="bi bi-file-earmark-plus"></i> Append to Existing Note</span>
+ </label>
+ <label style="display:flex;align-items:center;gap:8px;background:#f8fafc;border:1.5px solid #cbd5e1;padding:9px 12px;border-radius:8px;cursor:pointer" id="saveTargetNewLabel">
+ <input type="radio" name="saveNotesTarget" id="saveTargetNew" value="new" onchange="onSaveNotesTargetChange()"/>
+ <span style="font-size:0.82rem;font-weight:700;color:#1e293b"><i class="bi bi-file-earmark-diff"></i> Create New Note</span>
+ </label>
+ </div>
+
+ <!-- Dropdown for Existing Notes -->
+ <div id="saveNotesSelectExistingWrap">
+ <label for="saveNotesExistingSelect" style="font-size:0.74rem;color:#64748b;display:block;margin-bottom:4px">Choose Note to Append into:</label>
+ <select id="saveNotesExistingSelect" class="text-field" style="width:100%;font-size:0.84rem;padding:8px 10px">
+ <option value="">-- Select an Existing Note --</option>
+ </select>
+ <div style="font-size:0.72rem;color:#64748b;margin-top:4px" id="saveNotesAppendHint">
+ <i class="bi bi-info-circle"></i> New content will be appended to the bottom with a clear separator and timestamp.
+ </div>
+ </div>
+ </div>
+
+ <!-- 3. Title (for new note or reference) -->
+ <div id="saveNotesTitleWrap" style="margin-bottom:14px;display:none">
+ <label for="saveNotesTitleInput" style="font-size:0.8rem;font-weight:700;color:#334155;display:block;margin-bottom:4px">
+ <i class="bi bi-tag"></i> Note Title:
+ </label>
+ <input type="text" id="saveNotesTitleInput" class="text-field" placeholder="e.g. Python Functions & Scope" style="width:100%;font-size:0.85rem;padding:8px 10px"/>
+ </div>
+
+ <!-- 4. Note Content Preview / Editor -->
+ <div style="margin-bottom:16px">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+ <label for="saveNotesPreviewTextarea" style="font-size:0.8rem;font-weight:700;color:#334155">
+ <i class="bi bi-pencil-square"></i> Note Content Preview (Editable):
+ </label>
+ <span style="font-size:0.72rem;color:#64748b">You can edit or add notes before saving</span>
+ </div>
+ <textarea id="saveNotesPreviewTextarea" class="text-field" rows="6" style="width:100%;font-family:inherit;font-size:0.82rem;line-height:1.5;padding:10px;resize:vertical;border-radius:8px"></textarea>
+ </div>
+
+ <!-- Actions -->
+ <div style="display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #e2e8f0;padding-top:14px">
+ <button type="button" class="btn-outline" onclick="closeSaveChatNotesModal()" style="padding:8px 16px;font-size:0.85rem">
+ Cancel
+ </button>
+ <button type="button" class="btn-primary" id="confirmSaveNotesBtn" onclick="confirmSaveChatNotes()" style="padding:8px 20px;font-size:0.85rem;display:inline-flex;align-items:center;gap:6px">
+ <i class="bi bi-floppy"></i> Save to Notes
+ </button>
+ </div>
+ </div>
+</div>
+
+<!-- Saved Study Sessions & Full Exam Generator Modal -->
+<div class="modal-overlay" id="savedSessionsModal" style="display:none">
+ <div class="modal-box" style="width:94%;max-width:680px;padding:24px;text-align:left;box-sizing:border-box">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+ <div style="display:flex;align-items:center;gap:10px">
+ <div style="width:36px;height:36px;border-radius:10px;background:#4f46e5;color:white;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0">
+ <i class="bi bi-clock-history"></i>
+ </div>
+ <div>
+ <div style="font-weight:800;font-size:1.05rem;color:#0f172a">Saved Study Sessions</div>
+ <div style="font-size:0.75rem;color:var(--muted)">Review notes, generate full exams, or manage session data</div>
+ </div>
+ </div>
+ <button class="icon-btn" onclick="closeSavedSessionsModal()" style="border:none;background:none;color:#64748b;font-size:1.1rem;cursor:pointer"><i class="bi bi-x-lg"></i></button>
+ </div>
+
+ <div style="font-size:0.78rem;color:#64748b;background:#f8fafc;padding:10px 14px;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:14px">
+ <i class="bi bi-shield-check" style="color:#10b981"></i> Deleting a saved session only clears its study notes payload. <strong>All test attempts, scores, and analytics are permanently preserved</strong>.
+ </div>
+
+ <div id="savedSessionsList" style="max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:2px">
+ <div class="empty-msg"><i class="bi bi-hourglass-split"></i> Loading saved sessions...</div>
+ </div>
+
+ <div style="margin-top:16px;text-align:right">
+ <button class="btn-outline" onclick="closeSavedSessionsModal()">Close</button>
+ </div>
+ </div>
+</div>
+
+<!-- Session Exam Configuration & Multi-Length Generator Modal -->
+<div class="modal-overlay" id="sessionExamConfigModal" style="display:none;z-index:9999">
+ <div class="modal-box" style="width:94%;max-width:600px;padding:24px;text-align:left;box-sizing:border-box">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+ <div style="display:flex;align-items:center;gap:10px">
+ <div style="width:36px;height:36px;border-radius:10px;background:#4361ee;color:white;display:flex;align-items:center;justify-content:center;font-size:1.15rem">
+ <i class="bi bi-file-earmark-check"></i>
+ </div>
+ <div>
+ <div style="font-weight:800;font-size:1.05rem;color:#0f172a">Generate Exam from Study Session</div>
+ <div style="font-size:0.75rem;color:var(--muted)">Synthesizes test questions strictly grounded in your session notes</div>
+ </div>
+ </div>
+ <button class="icon-btn" onclick="closeSessionExamConfigModal()"><i class="bi bi-x-lg"></i></button>
+ </div>
+
+ <div style="font-size:0.8rem;color:#475569;background:#f8fafc;padding:10px 14px;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:16px">
+ <i class="bi bi-book" style="color:#4361ee"></i> Target Topic: <strong id="sessionExamTargetTopic" style="color:#0f172a">Session Study Notes</strong>
+ <div style="font-size:0.73rem;color:#64748b;margin-top:2px">Syllabus Scope: Complete notes, deep examples, and applied drills across all stages.</div>
+ </div>
+
+ <!-- Select Test Length -->
+ <div class="form-row" style="margin-bottom:16px">
+ <label class="field-label" style="font-weight:700;margin-bottom:8px;display:block">
+ <i class="bi bi-list-ol"></i> Select Test Length &amp; Scope:
+ </label>
+ <div class="test-length-grid" style="display:grid;grid-template-columns:repeat(2, 1fr);gap:10px">
+ <div class="test-len-card active" id="sessLen16" onclick="selectSessionExamLength(16, this)">
+ <div class="len-tag">Quick Test</div>
+ <div class="len-count">16 Questions</div>
+ <div class="len-sub">4 per cognitive category (~15 min)</div>
+ </div>
+ <div class="test-len-card" id="sessLen32" onclick="selectSessionExamLength(32, this)">
+ <div class="len-tag">Standard Test</div>
+ <div class="len-count">32 Questions</div>
+ <div class="len-sub">8 per cognitive category (~30 min)</div>
+ </div>
+ <div class="test-len-card" id="sessLen48" onclick="selectSessionExamLength(48, this)">
+ <div class="len-tag">Comprehensive</div>
+ <div class="len-count">48 Questions</div>
+ <div class="len-sub">12 per cognitive category (~45 min)</div>
+ </div>
+ <div class="test-len-card" id="sessLen60" onclick="selectSessionExamLength(60, this)">
+ <div class="len-tag">Mock Exam / Master</div>
+ <div class="len-count">60 Questions</div>
+ <div class="len-sub">15 per cognitive category (~60 min)</div>
+ </div>
+ </div>
+ <input type="hidden" id="selectedSessionExamLength" value="16"/>
+ <input type="hidden" id="selectedSessionExamId" value=""/>
+ </div>
+
+ <!-- Timer Mode Selector -->
+ <div class="form-row" style="margin-bottom:20px">
+ <label class="field-label" style="font-weight:700;margin-bottom:8px;display:block">
+ <i class="bi bi-clock-history"></i> Test Timer Mode:
+ </label>
+ <div style="display:flex;gap:10px;flex-wrap:wrap">
+ <label class="scope-radio-btn active" id="sessTimerTimedLabel" onclick="setSessionExamTimerMode('timed')" style="cursor:pointer">
+ <input type="radio" name="sessExamTimerMode" value="timed" checked style="display:none"/>
+ <i class="bi bi-hourglass-split"></i> Timed Exam (<span id="sessExamSuggestedTime">15</span> Mins)
+ </label>
+ <label class="scope-radio-btn" id="sessTimerUntimedLabel" onclick="setSessionExamTimerMode('untimed')" style="cursor:pointer">
+ <input type="radio" name="sessExamTimerMode" value="untimed" style="display:none"/>
+ <i class="bi bi-stopwatch"></i> Untimed (Self-Paced / No Limit)
+ </label>
+ </div>
+ </div>
+
+ <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+ <button class="btn-outline" onclick="closeSessionExamConfigModal()">Cancel</button>
+ <button class="btn-primary" onclick="confirmLaunchSessionExam()" style="background:#4361ee;color:white;font-weight:700">
+ <i class="bi bi-lightning-charge-fill"></i> Generate &amp; Start Exam
+ </button>
+ </div>
+ </div>
+</div>
+
+<!-- Study Session 1-Line Preview & Confirmation Modal -->
+<div class="modal-overlay" id="sessionPreviewModal" style="display:none">
+ <div class="modal-box" style="max-width:540px;padding:26px;text-align:left">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+ <div style="display:flex;align-items:center;gap:10px">
+ <div style="width:38px;height:38px;border-radius:10px;background:#4361ee;color:white;display:flex;align-items:center;justify-content:center;font-size:1.2rem">
+ <i class="bi bi-stars"></i>
+ </div>
+ <div>
+ <div style="font-weight:800;font-size:1.05rem;color:#0f172a">Study Sprint Preview</div>
+ <div style="font-size:0.75rem;color:var(--muted)" id="sessionPreviewSource">Academic Knowledge &amp; Live Web Grounding</div>
+ </div>
+ </div>
+ <button class="icon-btn" onclick="closeSessionPreviewModal()"><i class="bi bi-x-lg"></i></button>
+ </div>
+
+ <!-- Target Topic & 1-Line Summary -->
+ <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:14px">
+ <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;margin-bottom:4px">
+ <i class="bi bi-bookmark-check-fill" style="color:#4361ee"></i> Planned Focus: <span id="sessionPreviewTopic" style="color:#0f172a;font-weight:800"></span>
+ </div>
+ <div id="sessionPreviewSummary" style="font-size:0.88rem;color:#1e293b;line-height:1.55;font-weight:600">
+ <!-- 1-line summary inserted dynamically -->
+ </div>
+ </div>
+
+ <!-- 4 Stages pill row -->
+ <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;font-size:0.72rem">
+ <span style="background:#eff6ff;color:#2563eb;padding:3px 8px;border-radius:6px;font-weight:700">R1: Foundation (20m)</span>
+ <span style="background:#eff6ff;color:#2563eb;padding:3px 8px;border-radius:6px;font-weight:700">R2: Mechanism (25m)</span>
+ <span style="background:#fdf2f8;color:#db2777;padding:3px 8px;border-radius:6px;font-weight:700">R3: Active Recall (15m)</span>
+ <span style="background:#fdf2f8;color:#db2777;padding:3px 8px;border-radius:6px;font-weight:700">R4: Exam (15m)</span>
+ </div>
+
+ <!-- Custom Focus Section (User can clarify what they want to learn) -->
+ <div id="sessionClarifySection" style="margin-bottom:16px">
+ <label style="display:block;font-size:0.78rem;font-weight:700;color:#334155;margin-bottom:6px">
+ <i class="bi bi-pencil"></i> Want to focus on a specific subtopic or skill? (Optional)
+ </label>
+ <input type="text" id="sessionCustomFocusInput" class="text-field" placeholder="e.g. Focus on essay writing rules, or Shakespeare's sonnets, or specific formulas..." style="font-size:0.82rem;padding:8px 12px;width:100%"/>
+ <div style="font-size:0.7rem;color:#64748b;margin-top:4px">
+ Leave blank to proceed with the comprehensive general curriculum.
+ </div>
+ </div>
+
+ <!-- Action Buttons -->
+ <div style="display:flex;justify-content:flex-end;gap:10px">
+ <button class="btn-outline" onclick="closeSessionPreviewModal()">Cancel</button>
+ <button class="btn-primary" onclick="confirmStartPreviewedSession()" style="background:#22c55e;color:white;font-weight:700">
+ <i class="bi bi-check-circle-fill"></i> Agree &amp; Begin Session
+ </button>
+ </div>
+ </div>
+</div>
+
+
+
+<!-- Interactive Recall Challenge Modal -->
+<div class="modal-overlay" id="challengeModal" style="display:none">
+ <div class="modal-box" style="max-width:480px;padding:24px;text-align:left">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+ <div style="display:flex;align-items:center;gap:8px">
+ <div style="width:36px;height:36px;border-radius:10px;background:#f59e0b;color:white;display:flex;align-items:center;justify-content:center;font-size:1.2rem">
+ <i class="bi bi-lightning-charge-fill"></i>
+ </div>
+ <div>
+ <div style="font-weight:800;font-size:1rem;color:#0f172a">Active Recall Challenge</div>
+ <div style="font-size:0.72rem;color:var(--muted)">Test your comprehension (+30 KP)</div>
+ </div>
+ </div>
+ <button class="icon-btn" onclick="closeChallengeModal()"><i class="bi bi-x-lg"></i></button>
+ </div>
+
+ <div id="challengeLoading" style="text-align:center;padding:24px 0">
+ <div class="spinner"></div>
+ <div style="font-size:0.82rem;color:var(--muted);margin-top:8px">Generating challenge question from your study notes...</div>
+ </div>
+
+ <div id="challengeContent" style="display:none">
+ <div id="challengeQuestionText" style="font-size:0.95rem;font-weight:700;line-height:1.5;margin-bottom:16px;color:#1e293b"></div>
+ <div id="challengeOptionsList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+ <div id="challengeFeedback" style="display:none;padding:12px;border-radius:8px;font-size:0.82rem;line-height:1.5;margin-bottom:12px"></div>
+ <div style="display:flex;justify-content:flex-end">
+ <button class="btn-outline" onclick="closeChallengeModal()">Close</button>
+ </div>
+ </div>
+ </div>
+</div>
+
+<!-- Active Session Conflict Resolution Modal -->
+<div class="modal-overlay" id="sessionConflictModal" style="display:none">
+ <div class="modal-box" style="max-width:480px;padding:24px;text-align:left">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+ <div style="display:flex;align-items:center;gap:10px">
+ <div style="width:38px;height:38px;border-radius:10px;background:#ef4444;color:white;display:flex;align-items:center;justify-content:center;font-size:1.2rem">
+ <i class="bi bi-exclamation-triangle-fill"></i>
+ </div>
+ <div>
+ <div style="font-weight:800;font-size:1.05rem;color:#0f172a">Active Session In Progress</div>
+ <div style="font-size:0.75rem;color:var(--muted)">A focus session is currently running on your device(s).</div>
+ </div>
+ </div>
+ <button class="icon-btn" onclick="resolveSessionConflict('cancel')"><i class="bi bi-x-lg"></i></button>
+ </div>
+
+ <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.84rem">
+ <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+ <span style="color:var(--muted);font-weight:600">Current Session:</span>
+ <strong id="conflictCurrentTopic" style="color:var(--primary)">—</strong>
+ </div>
+ <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+ <span style="color:var(--muted);font-weight:600">Time Remaining:</span>
+ <strong id="conflictCurrentTime" style="color:#0f172a">25:00</strong>
+ </div>
+ <div style="display:flex;justify-content:space-between">
+ <span style="color:var(--muted);font-weight:600">New Requested:</span>
+ <strong id="conflictNewTopic" style="color:#059669">—</strong>
+ </div>
+ </div>
+
+ <p style="font-size:0.8rem;color:#475569;margin-bottom:16px;line-height:1.4">
+ What would you like to do with the current running session?
+ </p>
+
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+ <button class="btn-outline" style="border-color:#f59e0b;color:#d97706;font-weight:700;font-size:0.82rem;padding:10px" onclick="resolveSessionConflict('pause')">
+ <i class="bi bi-pause-circle-fill"></i> Pause Current
+ </button>
+ <button class="btn-primary" style="background:#059669;font-weight:700;font-size:0.82rem;padding:10px" onclick="resolveSessionConflict('continue')">
+ <i class="bi bi-play-circle-fill"></i> Continue Current
+ </button>
+ <button class="btn-primary" style="background:#dc2626;font-weight:700;font-size:0.82rem;padding:10px;grid-column:span 2" onclick="resolveSessionConflict('override')">
+ <i class="bi bi-arrow-repeat"></i> Override &amp; Start New Session
+ </button>
+ </div>
+ </div>
+</div>
+
+</body>
+</html>
