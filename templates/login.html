@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8"/>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+ <title>StudyEdge AI — Smart Study Companion</title>
+ <link rel="stylesheet" href="/static/fonts.css"/>
+ <link rel="stylesheet" href="/static/bootstrap-icons.css"/>
+ <style>
+ :root {
+ --primary: #4361ee;
+ --secondary: #3f37c9;
+ --accent: #4895ef;
+ --danger: #f72585;
+ --warning: #f8961e;
+ --success: #10b981;
+ --bg: #f5f7ff;
+ --text: #1e293b;
+ --text-light:#64748b;
+ --white: #ffffff;
+ --gradient: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+ --shadow: 0 10px 25px rgba(67,97,238,0.12);
+ }
+ *{ margin:0; padding:0; box-sizing:border-box; }
+ body{
+ font-family:'Montserrat',sans-serif;
+ background: radial-gradient(circle at top right, #eef2ff 0%, #f8fafc 100%);
+ min-height:100vh;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ padding:20px;
+ }
+ .welcome-card{
+ width:100%; max-width:440px;
+ padding:44px 36px;
+ background:var(--white);
+ border-radius:24px;
+ box-shadow:0 20px 60px rgba(67,97,238,0.12);
+ border: 1px solid #e2e8f0;
+ animation:fadeIn .4s ease;
+ text-align:center;
+ }
+ @keyframes fadeIn{
+ from{opacity:0;transform:translateY(-14px)}
+ to{opacity:1;transform:translateY(0)}
+ }
+ .app-icon{
+ width:76px;height:76px;
+ background:linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%);
+ border-radius:22px;
+ display:flex;align-items:center;justify-content:center;
+ margin:0 auto 20px;
+ font-size:2.2rem;
+ box-shadow: 0 8px 16px rgba(67,97,238,0.1);
+ }
+ h1{
+ font-size:1.85rem;font-weight:800;
+ color:var(--text);margin-bottom:6px;
+ letter-spacing: -0.5px;
+ }
+ .subtitle{
+ color:var(--text-light);
+ font-size:0.88rem;margin-bottom:28px;
+ line-height:1.5;
+ }
+ .input-box{
+ text-align:left;
+ margin-bottom:20px;
+ }
+ .input-label{
+ display:block;
+ font-size:0.78rem;
+ font-weight:700;
+ color:#475569;
+ text-transform:uppercase;
+ letter-spacing:0.5px;
+ margin-bottom:8px;
+ }
+ .input-field{
+ width:100%;padding:14px 18px;
+ border:1.5px solid #cbd5e1;border-radius:12px;
+ font-family:inherit;font-size:1rem;color:var(--text);
+ outline:none;transition:.2s;background:#f8fafc;
+ font-weight:600;
+ }
+ .input-field:focus{ 
+ border-color:var(--primary);
+ background:#fff; 
+ box-shadow:0 0 0 4px rgba(67,97,238,.12); 
+ }
+ .error-msg{ 
+ color:var(--danger);
+ font-size:.82rem;
+ margin-bottom:12px;
+ font-weight:600;
+ }
+ .btn-submit{
+ width:100%;padding:15px;border:none;border-radius:12px;
+ background:var(--gradient);color:#fff;
+ font-family:inherit;font-size:1.02rem;font-weight:700;
+ cursor:pointer;transition:all .2s ease;
+ display:flex;align-items:center;justify-content:center;gap:8px;
+ box-shadow: 0 8px 20px rgba(67,97,238,0.25);
+ }
+ .btn-submit:hover{ 
+ opacity:.95;
+ transform:translateY(-1.5px); 
+ box-shadow: 0 12px 25px rgba(67,97,238,0.32);
+ }
+ .btn-submit:active{
+ transform:translateY(0);
+ }
+ .local-badge{
+ margin-top:24px;
+ display:inline-flex;
+ align-items:center;
+ gap:6px;
+ font-size:0.75rem;
+ color:#64748b;
+ font-weight:600;
+ background:#f1f5f9;
+ padding:5px 12px;
+ border-radius:20px;
+ }
+ </style>
+</head>
+<body>
+ <div class="welcome-card">
+ <div class="app-icon">
+      <i class="bi bi-mortarboard-fill" style="color:var(--primary);font-size:2.2rem"></i>
+    </div>
+ <h1>StudyEdge AI</h1>
+ <p class="subtitle">Autonomous AI Study Studio & Personalized Offline Focus Engine</p>
+
+ <div class="input-box">
+ <label class="input-label" for="userName">Enter your name to continue</label>
+ <input type="text" id="userName" class="input-field" placeholder="Enter your name" autofocus autocomplete="name"/>
+ </div>
+
+ <p class="error-msg" id="loginError" style="display:none"></p>
+
+ <button class="btn-submit" onclick="continueToApp()">
+ Continue to Studio <i class="bi bi-arrow-right"></i>
+ </button>
+
+ <div class="local-badge">
+ <i class="bi bi-shield-check" style="color:#10b981"></i> Runs 100% locally on your machine
+ </div>
+ </div>
+
+ <script>
+ // Pre-populate previously used name if available
+ document.addEventListener('DOMContentLoaded', () => {
+ const savedName = localStorage.getItem('student_name');
+ const inputEl = document.getElementById('userName');
+ if (savedName && inputEl) {
+ inputEl.value = savedName;
+ inputEl.select();
+ }
+ });
+
+ function continueToApp() {
+ const name = document.getElementById('userName').value.trim();
+ if (!name) {
+ showErr('Please enter your name to proceed.');
+ return;
+ }
+
+ fetch('/login', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ name })
+ })
+ .then(r => r.json())
+ .then(data => {
+ if (data.success) {
+ localStorage.setItem('student_id', data.student_id);
+ localStorage.setItem('student_name', data.name);
+ window.location.href = '/dashboard';
+ } else {
+ showErr(data.error || 'Could not start session.');
+ }
+ })
+ .catch(() => showErr('Could not connect to local server. Make sure StudyEdge is running.'));
+ }
+
+ function showErr(msg) {
+ const el = document.getElementById('loginError');
+ if (el) {
+ el.textContent = msg;
+ el.style.display = 'block';
+ }
+ }
+
+ // Support pressing Enter key
+ document.addEventListener('keypress', e => {
+ if (e.key === 'Enter') {
+ continueToApp();
+ }
+ });
+ </script>
+</body>
+</html>
