@@ -236,14 +236,29 @@ def ollama_generate(prompt: str, task: str = "qa", model_override: str = None, n
             json=payload,
             timeout=90
         )
-        return response.json().get("response", "").strip()
+        if response.status_code == 200:
+            res_text = response.json().get("response", "").strip()
+            if res_text:
+                return res_text
+        raise RuntimeError(f"Ollama returned HTTP {response.status_code}: {response.text[:100]}")
     except Exception as e:
-        fallback = "mistral" if preferred_model != "mistral" else "phi3"
+        available = get_available_models()
+        fallback = None
+        for cand in ["mistral", "phi3", "llama3", "gemma3:4b"]:
+            if any(cand in a for a in available) and cand not in (preferred_model or ""):
+                fallback = cand
+                break
+        if not fallback and available:
+            fallback = available[0]
+        if not fallback:
+            fallback = "mistral" if preferred_model != "mistral" else "phi3"
+
         try:
             payload["model"] = fallback
             payload["options"]["num_predict"] = min(payload["options"]["num_predict"], 400)
-            r = requests.post(f"{OLLAMA_BASE_URL}/api/generate", json=payload, timeout=45)
-            return r.json().get("response", "").strip()
+            r = requests.post(f"{OLLAMA_BASE_URL}/api/generate", json=payload, timeout=60)
+            if r.status_code == 200:
+                return r.json().get("response", "").strip()
         except Exception:
             pass
         return f"Error: Model generation failed or timed out ({e}). Make sure Ollama is running."
