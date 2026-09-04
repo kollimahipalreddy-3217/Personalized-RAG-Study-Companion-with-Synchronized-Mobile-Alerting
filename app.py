@@ -616,13 +616,13 @@ def load_saved_session():
     if mode == "continue" and saved_state:
         target_round_idx = min(saved_state.get("round_idx", 0), max(0, len(rounds) - 1))
         target_round = rounds[target_round_idx] if rounds else {}
-        dur_mins = target_round.get("suggested_duration_mins", 20)
+        dur_mins = target_round.get("suggested_duration_mins", 25)
         target_secs = saved_state.get("seconds_left", dur_mins * 60)
         round_num = target_round_idx + 1
     else:
         target_round_idx = 0
         target_round = rounds[0] if rounds else {}
-        dur_mins = target_round.get("suggested_duration_mins", 20) if rounds else 20
+        dur_mins = target_round.get("suggested_duration_mins", 25) if rounds else 25
         target_secs = dur_mins * 60
         round_num = 1
     
@@ -658,7 +658,7 @@ def load_saved_session():
             {
                 "title": f"Stage {r.get('round_number', i+1)}: {r.get('title', 'Milestone')}",
                 "goal": r.get("objective", f"Complete Stage {i+1}"),
-                "tip": f"Duration: {r.get('suggested_duration_mins', 20)}m ({r.get('mode', 'Tutor')})",
+                "tip": f"Duration: {r.get('suggested_duration_mins', 25)}m ({r.get('mode', 'Tutor')})",
                 "done": (mode == "continue" and i < target_round_idx)
             }
             for i, r in enumerate(rounds)

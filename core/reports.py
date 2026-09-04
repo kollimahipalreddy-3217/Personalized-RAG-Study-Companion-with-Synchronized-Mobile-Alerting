@@ -660,24 +660,9 @@ def compute_overall_diagnostic_report(history: List[Dict[str, Any]], student_nam
     if lowest_topic and lowest_topic_pct < 70.0:
         action_plan.append(f"Schedule a dedicated review session for **{lowest_topic}** (currently averaging {lowest_topic_pct:.1f}%).")
     action_plan.append("Use the Flashcards tool to self-test on core definitions every 48 hours to flatten your Ebbinghaus forgetting curve.")
-    action_plan.append("Take a targeted remedial MCQ test every 3-4 study sessions to track your cognitive domain improvements.")
+    action_plan.append("Take regular practice MCQ tests every 3-4 study sessions to track your cognitive domain improvements.")
 
     recommended_action = None
-    if weak_categories or (lowest_topic and lowest_topic_pct < 65.0):
-        remedial_topic = lowest_topic or (f"Remedial: {weakest_cat}" if weakest_cat else "Core Revision")
-        recommended_action = {
-            "type": "schedule_plan",
-            "topic": remedial_topic,
-            "message": f"Your overall analytics show lower retention in {', '.join(weak_categories) if weak_categories else remedial_topic}. Would you like to schedule an AI-guided remedial review in your Study Planner?",
-            "suggestedDurationMins": 35
-        }
-    else:
-        recommended_action = {
-            "type": "celebrate",
-            "topic": "All Topics",
-            "message": f"Outstanding cumulative mastery ({overall_percentage}%) across all {len(history)} tests! Keep reinforcing with spaced repetition.",
-            "suggestedDurationMins": 25
-        }
 
     knowledge_points = calculate_knowledge_points(history)
 

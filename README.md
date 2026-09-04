@@ -1,4 +1,4 @@
-﻿# Personalized RAG Study Companion with Synchronized Mobile Alerting
+# Personalized RAG Study Companion with Synchronized Mobile Alerting
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)](https://python.org)
@@ -87,7 +87,7 @@ graph TD
 ```
 ├── core/                                 # [Core Intelligence & Retrieval Engines]
 │   ├── rag_engine.py                    # Multi-Model Dynamic Router & Local Context Retrieval
-│   ├── mcq_test.py                      # Bloom's Taxonomy Cognitive Assessment Engine
+│   ├── mcq_test.py                      # Cognitive Assessment Engine (60Q Collision-Free Deduplication)
 │   ├── local_passage_store.py           # Hybrid BM25 / Sparse Passage Index
 │   ├── pdf_indexer.py                   # Document Chunking & ChromaDB Vector Ingestion
 │   ├── cross_module_agent.py            # Cross-Module Autonomous Reasoning & Diagnostics
@@ -182,7 +182,7 @@ pip install -r requirements.txt
 | **Passage Retrieval** | Top-4 Relevant Chunks | ChromaDB + BM25 | 18 ms | 100% Local / Zero Egress |
 | **Milestone Synthesis** | 3-Stage Focus Plan | Ollama (Phi-3 / Gemma) | 1.8 s | 100% Local / Zero Egress |
 | **Curriculum Generation** | 3-Round Mastery Plan | Ollama (Mistral / Gemma) | 4.2 s | 100% Local / Zero Egress |
-| **Diagnostic Assessment** | 16-Question MCQ Drill | Bloom Engine + Ollama | 6.5 s | 100% Local / Zero Egress |
+| **Diagnostic Assessment** | 16- to 60-Question Mock Exam | Bloom Engine + Ollama | 6.5 s (16Q) – 49.5 s (60Q) | 100% Local / Zero Egress |
 | **Device Synchronization** | Real-Time State Broadcast | WebSocket (Socket.IO) | < 12 ms | Local LAN Peer-to-Peer |
 
 ---

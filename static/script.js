@@ -1614,9 +1614,8 @@ function renderCurrentTestReport(report) {
  <div class="action-banner-text">
  <i class="bi bi-lightbulb-fill" style="color:var(--warning);margin-right:6px"></i>
  ${ra.message}
- </div>
- <button class="btn-primary" onclick="schedulePlanForWeakArea(${JSON.stringify(ra.topic)}, ${ra.suggestedDurationMins})">
- <i class="bi bi-calendar-plus"></i> Schedule Review
+ <button class="btn-primary" onclick="schedulePlanForWeakArea('${escapeHtml(ra.topic || '')}', 25)">
+ <i class="bi bi-calendar-plus"></i> Schedule Review (25m)
  </button>
  </div>
  `;
@@ -2177,33 +2176,6 @@ function openOverallDiagnosticModal() {
         `;
       }).join('');
 
-      // Personalized Pedagogical Weak-Area Action Banner
-      let actionBannerHtml = '';
-      if (rep.recommendedAction && rep.recommendedAction.type === 'schedule_plan') {
-        const ra = rep.recommendedAction;
-        actionBannerHtml = `
-          <div class="action-banner-card" style="background:linear-gradient(135deg, #eff6ff, #dbeafe);border:1.5px solid #bfdbfe;padding:16px 18px;border-radius:12px;margin-bottom:18px">
-            <div style="display:flex;align-items:flex-start;gap:12px;flex:1">
-              <div style="width:36px;height:36px;border-radius:10px;background:#3b82f6;color:white;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">
-                <i class="bi bi-bullseye"></i>
-              </div>
-              <div>
-                <div style="font-size:0.95rem;font-weight:800;color:#1e3a8a;margin-bottom:3px">Targeted Weak-Area Remedial Strategy</div>
-                <div style="font-size:0.83rem;color:#1e40af;line-height:1.45">${escapeHtml(ra.message)}</div>
-              </div>
-            </div>
-            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-              <button class="btn-primary" onclick="closeOverallDiagnosticModal();schedulePlanForWeakArea(${JSON.stringify(ra.topic)}, ${ra.suggestedDurationMins || 30})" style="padding:8px 14px;font-size:0.8rem">
-                <i class="bi bi-calendar-plus"></i> Schedule Remedial Session (${ra.suggestedDurationMins}m)
-              </button>
-              <button class="btn-outline" onclick="closeOverallDiagnosticModal();launchRemedialQuiz(${JSON.stringify(ra.topic)})" style="padding:8px 14px;font-size:0.8rem;background:white">
-                <i class="bi bi-play-circle-fill"></i> Launch Remedial Quiz
-              </button>
-            </div>
-          </div>
-        `;
-      }
-
       // Step-by-Step AI Improvement Roadmap
       const roadmapItems = (rep.actionPlan || []).map((step, idx) => `
         <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
@@ -2236,14 +2208,7 @@ function openOverallDiagnosticModal() {
                 <span><i class="bi bi-award-fill" style="color:#f59e0b"></i> <b>${rep.knowledgePoints?.tier || 'Novice'}</b> (${rep.knowledgePoints?.points || 0} pts)</span>
               </div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0">
-              <button class="btn-outline" onclick="window.print()" style="font-size:0.8rem;padding:7px 12px">
-                <i class="bi bi-printer"></i> Print Report
-              </button>
-            </div>
           </div>
-
-          ${actionBannerHtml}
 
           <!-- 4 Cognitive Categories -->
           <div>
@@ -2282,37 +2247,29 @@ function closeOverallDiagnosticModal() {
   if (m) m.style.display = 'none';
 }
 
-function launchRemedialQuiz(topic) {
-  setView('test');
-  const tSelect = document.getElementById('testDocSelect');
-  if (tSelect && topic) {
-    for (let opt of tSelect.options) {
-      if (opt.text.toLowerCase().includes(topic.toLowerCase())) {
-        tSelect.value = opt.value;
-        break;
-      }
-    }
-  }
-  showToast(`🎯 Remedial Quiz Mode: Ready to practice "${topic}"`);
-}
 
 // ─────────────────────────────────────────
 // Interlinking Actions
 // ─────────────────────────────────────────
 function schedulePlanForWeakArea(topic, durationMins) {
- setView('planner');
- const tI = document.getElementById('planTopic');
- const dI = document.getElementById('planDuration');
- const dtI= document.getElementById('planDateTime');
- const nI = document.getElementById('planNotes');
- if (tI) tI.value = topic;
- if (dI) dI.value = durationMins || 30;
- const tomorrow = new Date();
- tomorrow.setDate(tomorrow.getDate() + 1);
- tomorrow.setHours(10, 0, 0, 0);
- if (dtI) dtI.value = tomorrow.toISOString().slice(0, 16);
- if (nI) nI.value = `Weak-area review session: focus on improving ${topic}.`;
- showToast(' Plan pre-filled! Click "Schedule Session" to save.');
+  setView('planner');
+  const tI = document.getElementById('planTopic');
+  const dI = document.getElementById('planDuration');
+  const dtI = document.getElementById('planDateTime');
+  const nI = document.getElementById('planNotes');
+  if (tI) tI.value = topic || 'Targeted Review';
+  if (dI) dI.value = 25;
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(10, 0, 0, 0);
+  const year = tomorrow.getFullYear();
+  const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+  const day = String(tomorrow.getDate()).padStart(2, '0');
+  const hours = String(tomorrow.getHours()).padStart(2, '0');
+  const mins = String(tomorrow.getMinutes()).padStart(2, '0');
+  if (dtI) dtI.value = `${year}-${month}-${day}T${hours}:${mins}`;
+  if (nI) nI.value = `Targeted study session (25m): focus on mastering ${topic || 'key concepts'}.`;
+  showToast('📅 25-minute study session pre-filled! Click "Schedule Session" to save.');
 }
 
 function promptPostSessionTest(topic) {
@@ -3611,7 +3568,7 @@ function renderCurriculumBannerButtons(roundIdx, currentRound) {
  return `
  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
  <button class="btn-primary" style="background:white;color:#059669;font-weight:800;font-size:0.82rem;padding:8px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.1);border:none;cursor:pointer" onclick="startSprintFromCurriculum(${roundIdx})">
- <i class="bi bi-play-circle-fill"></i> Start Sprint (${currentRound.suggested_duration_mins || 20}m)
+ <i class="bi bi-play-circle-fill"></i> Start Sprint (${currentRound.suggested_duration_mins || 25}m)
  </button>
  <button class="btn-primary" style="background:#f8fafc;color:#334155;font-weight:700;font-size:0.8rem;padding:8px 12px;box-shadow:0 2px 6px rgba(0,0,0,0.05);border:1px solid #cbd5e1;cursor:pointer" onclick="pauseAndSaveSession()" title="Save session progress for later">
  <i class="bi bi-floppy-fill"></i> Save Session
@@ -4018,7 +3975,7 @@ function renderCurriculumStudio(curriculum, roundIdx = 0) {
 
  // Update timer display to suggested stage duration if sprint is not running
  if (!S.isSprintRunning && currentRound.suggested_duration_mins) {
- const durMins = currentRound.suggested_duration_mins || 20;
+ const durMins = currentRound.suggested_duration_mins || 25;
  const timerDisp = document.getElementById('timerDisplay');
  if (timerDisp) timerDisp.textContent = `${String(durMins).padStart(2, '0')}:00`;
  }
@@ -4252,7 +4209,7 @@ function switchCurriculumRound(idx) {
  const roundNum = idx + 1;
  const rounds = S.currentCurriculum.rounds || [];
  const currentRound = rounds[idx] || {};
- const durMins = currentRound.suggested_duration_mins || 20;
+ const durMins = currentRound.suggested_duration_mins || 25;
 
  // Update top-left pomodoro counter & stage label immediately
  const pmCount = document.getElementById('pomodoroCount');
@@ -4322,7 +4279,7 @@ function startSprintFromCurriculum(roundIdx) {
  }
  const rounds = S.currentCurriculum.rounds || [];
  const r = rounds[roundIdx] || rounds[0];
- const durationMins = r.suggested_duration_mins || 20;
+ const durationMins = r.suggested_duration_mins || 25;
  const topic = `${S.currentCurriculum.topic} (R${r.round_number}: ${r.title})`;
 
  showToast(` Starting Sprint ${r.round_number}: ${r.title} (${durationMins} mins)...`);
@@ -4566,7 +4523,7 @@ function endSprint() {
  return;
  }
  const currentRound = S.currentCurriculum?.rounds?.[S.currentRoundIdx || 0] || {};
- const durMins = currentRound.suggested_duration_mins || 20;
+ const durMins = currentRound.suggested_duration_mins || 25;
 
  if (socket) {
  socket.emit('end_sprint', {
@@ -5153,7 +5110,7 @@ function startTimer() {
  const curIdx = S.currentRoundIdx || 0;
  const rounds = S.currentCurriculum.rounds;
  const currentRound = rounds[curIdx] || rounds[0];
- const durMins = currentRound.suggested_duration_mins || 20;
+ const durMins = currentRound.suggested_duration_mins || 25;
  const roundTopic = `${S.currentCurriculum.topic} (R${currentRound.round_number}: ${currentRound.title})`;
 
  // If resuming the exact sprint that was paused:

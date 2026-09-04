@@ -1322,10 +1322,10 @@ Rule: Do NOT use generic phrases like 'understand definitions of {clean_topic}'.
 
 Output ONLY a JSON array with 4 objects:
 [
-  {{"round_number": 1, "title": "<Specific Topic Title 1>", "mode": "Tutor", "suggested_duration_mins": 20, "objective": "<Concrete Learning Objective 1>"}},
+  {{"round_number": 1, "title": "<Specific Topic Title 1>", "mode": "Tutor", "suggested_duration_mins": 25, "objective": "<Concrete Learning Objective 1>"}},
   {{"round_number": 2, "title": "<Specific Topic Title 2>", "mode": "Tutor", "suggested_duration_mins": 25, "objective": "<Concrete Learning Objective 2>"}},
-  {{"round_number": 3, "title": "<Specific Practice/Recall Title 3>", "mode": "Tester", "suggested_duration_mins": 15, "objective": "<Concrete Learning Objective 3>"}},
-  {{"round_number": 4, "title": "<Specific Mastery Exam Title 4>", "mode": "Tester", "suggested_duration_mins": 15, "objective": "<Concrete Learning Objective 4>"}}
+  {{"round_number": 3, "title": "<Specific Practice/Recall Title 3>", "mode": "Tester", "suggested_duration_mins": 25, "objective": "<Concrete Learning Objective 3>"}},
+  {{"round_number": 4, "title": "<Specific Mastery Exam Title 4>", "mode": "Tester", "suggested_duration_mins": 25, "objective": "<Concrete Learning Objective 4>"}}
 ]"""
 
     try:
@@ -1341,7 +1341,7 @@ Output ONLY a JSON array with 4 objects:
 
     # Fallback retry with Mistral using a fast direct instruction
     try:
-        fast_prompt = f"Output a JSON list with 4 Pomodoro stages for studying '{clean_topic}'. Each with keys: round_number (1-4), title (specific topic concept), mode ('Tutor' or 'Tester'), suggested_duration_mins (20, 25, 15, 15), objective (actionable goal for {clean_topic}). JSON only."
+        fast_prompt = f"Output a JSON list with 4 Pomodoro stages for studying '{clean_topic}'. Each with keys: round_number (1-4), title (specific topic concept), mode ('Tutor' or 'Tester'), suggested_duration_mins (25, 25, 25, 25), objective (actionable goal for {clean_topic}). JSON only."
         raw2 = ollama_generate(fast_prompt, task="curriculum", model_override="mistral", num_predict=350)
         match2 = re.search(r'\[.*\]', raw2, re.DOTALL)
         if match2:
@@ -1352,10 +1352,10 @@ Output ONLY a JSON array with 4 objects:
         pass
 
     return [
-        {"round_number": 1, "title": f"Core Foundations of {clean_topic}", "mode": "Tutor", "suggested_duration_mins": 20, "objective": f"Master foundational principles, definitions, and core mental models of {clean_topic}."},
+        {"round_number": 1, "title": f"Core Foundations of {clean_topic}", "mode": "Tutor", "suggested_duration_mins": 25, "objective": f"Master foundational principles, definitions, and core mental models of {clean_topic}."},
         {"round_number": 2, "title": f"Applied Mechanisms & Analysis of {clean_topic}", "mode": "Tutor", "suggested_duration_mins": 25, "objective": f"Analyze working methods, step-by-step logic, and practical applications of {clean_topic}."},
-        {"round_number": 3, "title": f"Active Recall & Problem Solving on {clean_topic}", "mode": "Tester", "suggested_duration_mins": 15, "objective": f"Test yourself on edge-case scenarios, problem solving, and key formulas from memory."},
-        {"round_number": 4, "title": f"Diagnostic Mastery Verification on {clean_topic}", "mode": "Tester", "suggested_duration_mins": 15, "objective": f"Comprehensive diagnostic verification to solidify retention and eliminate blind spots in {clean_topic}."}
+        {"round_number": 3, "title": f"Active Recall & Problem Solving on {clean_topic}", "mode": "Tester", "suggested_duration_mins": 25, "objective": f"Test yourself on edge-case scenarios, problem solving, and key formulas from memory."},
+        {"round_number": 4, "title": f"Diagnostic Mastery Verification on {clean_topic}", "mode": "Tester", "suggested_duration_mins": 25, "objective": f"Comprehensive diagnostic verification to solidify retention and eliminate blind spots in {clean_topic}."}
     ]
 
 
@@ -1511,7 +1511,7 @@ def generate_study_curriculum(topic: str, student_id: int = 1, doc_name: str = N
                 "round_number": 1,
                 "title": t1,
                 "mode": (llm_rounds[0].get("mode") if llm_rounds and len(llm_rounds) > 0 else "Tutor"),
-                "suggested_duration_mins": (int(llm_rounds[0].get("suggested_duration_mins", 20)) if llm_rounds and len(llm_rounds) > 0 else 20),
+                "suggested_duration_mins": 25,
                 "objective": (llm_rounds[0].get("objective") if llm_rounds and len(llm_rounds) > 0 else f"Understand primary definitions and intuitive mental models of {clean_topic}."),
                 "study_content_markdown": _format_stage_notes(1, t1, slice_1),
                 "active_checkpoints": [
@@ -1524,7 +1524,7 @@ def generate_study_curriculum(topic: str, student_id: int = 1, doc_name: str = N
                 "round_number": 2,
                 "title": t2,
                 "mode": (llm_rounds[1].get("mode") if llm_rounds and len(llm_rounds) > 1 else "Tutor"),
-                "suggested_duration_mins": (int(llm_rounds[1].get("suggested_duration_mins", 25)) if llm_rounds and len(llm_rounds) > 1 else 25),
+                "suggested_duration_mins": 25,
                 "objective": (llm_rounds[1].get("objective") if llm_rounds and len(llm_rounds) > 1 else f"Master working methods, step-by-step logic, and practical applications of {clean_topic}."),
                 "study_content_markdown": _format_stage_notes(2, t2, slice_2),
                 "active_checkpoints": [
@@ -1537,7 +1537,7 @@ def generate_study_curriculum(topic: str, student_id: int = 1, doc_name: str = N
                 "round_number": 3,
                 "title": t3,
                 "mode": (llm_rounds[2].get("mode") if llm_rounds and len(llm_rounds) > 2 else "Tester"),
-                "suggested_duration_mins": (int(llm_rounds[2].get("suggested_duration_mins", 15)) if llm_rounds and len(llm_rounds) > 2 else 15),
+                "suggested_duration_mins": 25,
                 "objective": (llm_rounds[2].get("objective") if llm_rounds and len(llm_rounds) > 2 else f"Test yourself from memory without referencing notes."),
                 "study_content_markdown": (
                     f"###  Stage 3: Active Retrieval Drill (Closed-Book) — {clean_topic}\n\n"
@@ -1554,7 +1554,7 @@ def generate_study_curriculum(topic: str, student_id: int = 1, doc_name: str = N
                 "round_number": 4,
                 "title": t4,
                 "mode": (llm_rounds[3].get("mode") if llm_rounds and len(llm_rounds) > 3 else "Tester"),
-                "suggested_duration_mins": (int(llm_rounds[3].get("suggested_duration_mins", 15)) if llm_rounds and len(llm_rounds) > 3 else 15),
+                "suggested_duration_mins": 25,
                 "objective": (llm_rounds[3].get("objective") if llm_rounds and len(llm_rounds) > 3 else f"High-yield diagnostic test to solidify long-term retention of {clean_topic}."),
                 "study_content_markdown": (
                     f"###  Stage 4: Final Mastery Verification — {clean_topic}\n\n"
@@ -1763,7 +1763,7 @@ def replan_single_round(topic: str, round_number: int, student_id: int = 1) -> d
         "round_number": round_number,
         "title": title,
         "mode": mode,
-        "suggested_duration_mins": 20 if round_number == 1 else (25 if round_number == 2 else 15),
+        "suggested_duration_mins": 25,
         "objective": f"Master the core operational principles and applied techniques of {topic}.",
         "study_content_markdown": notes,
         "active_checkpoints": checkpoints,
